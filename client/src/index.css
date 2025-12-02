@@ -82,3 +82,27 @@ h1, h2, h3, .display-font {
   transform: scale(1.1);
   filter: drop-shadow(0 8px 16px rgba(245, 158, 11, 0.4));
 }
+
+/* PWA Install Prompt Animation */
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out forwards;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* PWA Fullscreen support */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

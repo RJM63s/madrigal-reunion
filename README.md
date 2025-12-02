@@ -1,33 +1,49 @@
 # Madrigal Family Reunion App
 
-A full-stack web application for managing family reunion registrations with an interactive family tree visualization.
+A full-stack Progressive Web App (PWA) for managing family reunion registrations with an interactive family tree visualization. Features festive design with Dancing Script fonts, floating butterflies, and a beautiful radial family tree layout.
 
-## Features
+## ✨ Features
 
-- **Registration Form**: Collect detailed family member information
-  - Name, email, phone
-  - Relationship type and family connections
-  - Generation and family branch
-  - Photo upload
-  - Number of attendees
-  - Dietary restrictions
+### 📱 Progressive Web App (PWA)
+- **Installable**: Add to home screen on mobile and desktop
+- **Offline Support**: Works without internet connection
+- **Full Screen Mode**: Runs like a native app
+- **Push Notifications**: Ready for future notifications
+- **App Shortcuts**: Quick access to Register and Family Tree
 
-- **Interactive Family Tree**: D3.js-powered visualization
-  - Shows family connections and relationships
-  - Displays member photos on nodes
-  - Interactive zoom and pan
-  - Drag nodes to rearrange
+### 📝 Registration Form
+- Name, email, phone
+- Relationship type and family connections
+- Generation and family branch
+- Photo upload
+- Number of attendees
 
-- **QR Code**: Easy registration access via QR code on home page
+### 🌳 Interactive Family Tree
+- **Radial/circular layout** by generation
+- **Larger nodes** with prominent photos
+- **Hover effects** that highlight connection paths
+- **Smooth animations** and transitions
+- Drag nodes to rearrange
+- Interactive zoom and pan
+- Generation badges and decorative elements
 
-- **Admin Dashboard**: View all submissions
-  - Statistics overview
-  - Filter by generation
-  - Export to CSV
-  - Detailed member information table
+### 🎨 Festive Design
+- **Google Fonts**: Dancing Script for headings, Poppins for body
+- **Floating butterflies** with gentle animations
+- **Rainbow gradient borders** on cards
+- **Celebration title animations**
+- Warm color palette with amber, orange, and pink
 
-- **Data Storage**: All data saved to `family.json` file
-- **Photo Storage**: Uploaded photos stored in `/uploads` folder
+### 📊 Admin Dashboard
+- Statistics overview
+- Filter by generation
+- Export to CSV
+- Detailed member information table
+
+### 💾 Data & Storage
+- All data saved to `family.json` file
+- Uploaded photos stored in `/uploads` folder
+- QR code for easy mobile registration
 
 ## Tech Stack
 
@@ -107,6 +123,47 @@ madrigal-reunion/
 - `POST /api/register` - Register a new family member (with photo upload)
 - `GET /api/family` - Get all family members
 - `GET /api/stats` - Get registration statistics
+
+## 📱 PWA Setup
+
+The app is now a Progressive Web App! To complete the setup:
+
+### Generate App Icons
+
+1. **Option 1**: Open `client/generate-icons.html` in your browser
+   - Right-click each generated icon and save to `client/public/`
+   - Required sizes: 72, 96, 128, 144, 152, 192, 384, 512
+   - Save apple-touch-icon as `apple-touch-icon.png`
+
+2. **Option 2**: Use an online tool
+   - Visit https://www.pwabuilder.com/imageGenerator
+   - Upload a 512x512 logo
+   - Download all icon sizes
+
+### Test the PWA
+
+**Desktop (Chrome/Edge)**:
+- Look for the install icon in the address bar
+- Click to install as desktop app
+
+**Mobile**:
+- Visit the site on your phone
+- Look for "Add to Home Screen" prompt
+- Install from the prompt or browser menu
+
+**Offline Mode**:
+- Open DevTools → Application → Service Workers
+- Check "Offline" mode
+- App should still load!
+
+For detailed PWA setup instructions, see `client/PWA_SETUP.md`
+
+### Deployment for PWA
+
+PWA features require HTTPS in production:
+- Deploy to Vercel, Netlify, or similar
+- Service worker will automatically register
+- Users can install from any browser
 
 ## Notes
 

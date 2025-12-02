@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate PWA Icons</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    canvas { border: 1px solid #ccc; margin: 10px; }
+    .container { display: flex; flex-wrap: wrap; gap: 10px; }
+  </style>
+</head>
+<body>
+  <h1>PWA Icon Generator</h1>
+  <p>Right-click and save each icon below:</p>
+  <div class="container" id="icons"></div>
+
+  <script>
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+    const container = document.getElementById('icons');
+
+    sizes.forEach(size => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Gradient background
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#fbbf24');
+      gradient.addColorStop(1, '#f59e0b');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+
+      // Add decorative border
+      ctx.strokeStyle = '#78350f';
+      ctx.lineWidth = size * 0.05;
+      ctx.strokeRect(size * 0.05, size * 0.05, size * 0.9, size * 0.9);
+
+      // Add text
+      ctx.fillStyle = 'white';
+      ctx.font = `bold ${size * 0.4}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('M', size / 2, size / 2);
+
+      // Add emoji decoration
+      ctx.font = `${size * 0.2}px Arial`;
+      ctx.fillText('🌺', size * 0.8, size * 0.2);
+
+      // Create download link
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = `<h3>${size}x${size}</h3>`;
+      wrapper.appendChild(canvas);
+
+      const link = document.createElement('a');
+      link.download = `icon-${size}x${size}.png`;
+      link.href = canvas.toDataURL();
+      link.textContent = 'Download';
+      link.style.display = 'block';
+      wrapper.appendChild(link);
+
+      container.appendChild(wrapper);
+    });
+
+    // Generate apple-touch-icon (180x180)
+    const appleCanvas = document.createElement('canvas');
+    appleCanvas.width = 180;
+    appleCanvas.height = 180;
+    const appleCtx = appleCanvas.getContext('2d');
+
+    const appleGradient = appleCtx.createLinearGradient(0, 0, 180, 180);
+    appleGradient.addColorStop(0, '#fbbf24');
+    appleGradient.addColorStop(1, '#f59e0b');
+    appleCtx.fillStyle = appleGradient;
+    appleCtx.fillRect(0, 0, 180, 180);
+
+    appleCtx.strokeStyle = '#78350f';
+    appleCtx.lineWidth = 9;
+    appleCtx.strokeRect(9, 9, 162, 162);
+
+    appleCtx.fillStyle = 'white';
+    appleCtx.font = 'bold 72px Arial';
+    appleCtx.textAlign = 'center';
+    appleCtx.textBaseline = 'middle';
+    appleCtx.fillText('M', 90, 90);
+
+    appleCtx.font = '36px Arial';
+    appleCtx.fillText('🌺', 144, 36);
+
+    const appleWrapper = document.createElement('div');
+    appleWrapper.innerHTML = '<h3>Apple Touch Icon (180x180)</h3>';
+    appleWrapper.appendChild(appleCanvas);
+
+    const appleLink = document.createElement('a');
+    appleLink.download = 'apple-touch-icon.png';
+    appleLink.href = appleCanvas.toDataURL();
+    appleLink.textContent = 'Download Apple Icon';
+    appleLink.style.display = 'block';
+    appleWrapper.appendChild(appleLink);
+
+    container.appendChild(appleWrapper);
+  </script>
+</body>
+</html>

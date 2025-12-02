@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Register from './pages/Register';
 import FamilyTree from './pages/FamilyTree';
 import Admin from './pages/Admin';
+import InstallPrompt from './components/InstallPrompt';
 
 function App() {
   return (
@@ -13,6 +14,9 @@ function App() {
         <div className="butterfly" style={{top: '20%', right: '10%'}}>🦋</div>
         <div className="butterfly" style={{bottom: '15%', left: '15%'}}>🦋</div>
         <div className="butterfly" style={{bottom: '25%', right: '8%'}}>🦋</div>
+
+        {/* PWA Install Prompt */}
+        <InstallPrompt />
 
         <nav className="bg-gradient-to-r from-amber-700 to-orange-600 text-white shadow-2xl relative z-20">
           <div className="container mx-auto px-4 py-5">
