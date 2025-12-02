@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+/* Custom styles */
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+h1, h2, h3, .display-font {
+  font-family: 'Dancing Script', cursive;
+}
+
+/* Butterfly decorations */
+.butterfly {
+  position: fixed;
+  font-size: 24px;
+  animation: float 15s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.6;
+}
+
+.butterfly:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+.butterfly:nth-child(2) { top: 20%; right: 10%; animation-delay: 3s; }
+.butterfly:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 6s; }
+.butterfly:nth-child(4) { bottom: 25%; right: 8%; animation-delay: 9s; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(20px, -20px) rotate(5deg); }
+  50% { transform: translate(-15px, -40px) rotate(-5deg); }
+  75% { transform: translate(15px, -20px) rotate(3deg); }
+}
+
+/* Confetti effect */
+.confetti {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  background-color: #f59e0b;
+  position: absolute;
+  animation: confetti-fall 8s linear infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Festive card borders */
+.festive-card {
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #f59e0b, #ef4444, #ec4899, #8b5cf6) border-box;
+  border: 3px solid transparent;
+  border-radius: 12px;
+}
+
+/* Celebration title animation */
+.celebration-title {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+/* Smooth transitions for tree nodes */
+.tree-node {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tree-node:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 8px 16px rgba(245, 158, 11, 0.4));
+}
