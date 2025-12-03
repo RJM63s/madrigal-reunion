@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import Countdown from '../components/Countdown';
 import { SkeletonStats } from '../components/Skeleton';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 // Set your reunion date here
 const REUNION_DATE = '2025-12-13T10:00:00';
 
@@ -27,7 +29,7 @@ function Home() {
     }
 
     // Fetch stats
-    fetch('http://localhost:3001/api/stats')
+    fetch(`${API_URL}/api/stats`)
       .then(res => res.json())
       .then(data => {
         setStats(data);
