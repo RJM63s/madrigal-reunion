@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Modern Design System */
+/* Modern Design System - Airbnb Inspired */
 :root {
   --color-primary: #c2410c;
   --color-primary-light: #ea580c;
@@ -18,6 +18,9 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -37,19 +40,81 @@ body {
   font-family: 'Pacifico', cursive;
 }
 
-/* Modern card styling */
+/* ==========================================
+   PAGE TRANSITIONS - Airbnb Style
+   ========================================== */
+.page-transition {
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+
+.page-enter {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+/* ==========================================
+   SKELETON LOADING - Shimmer Effect
+   ========================================== */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 0%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================
+   MODERN CARDS - Enhanced Interactions
+   ========================================== */
 .modern-card {
   background: white;
   border-radius: 20px;
   box-shadow: var(--shadow-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-normal);
+  will-change: transform, box-shadow;
 }
 
 .modern-card:hover {
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
-/* Bottom sheet modal */
+.modern-card:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Interactive card with press feedback */
+.card-interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-interactive:active {
+  transform: scale(0.97);
+  transition: transform 100ms ease;
+}
+
+/* ==========================================
+   BOTTOM SHEET - With Swipe Gestures
+   ========================================== */
 .bottom-sheet {
   position: fixed;
   bottom: 0;
@@ -57,26 +122,47 @@ body {
   right: 0;
   background: white;
   border-radius: 24px 24px 0 0;
-  box-shadow: 0 -10px 25px -5px rgb(0 0 0 / 0.1);
+  box-shadow: 0 -10px 40px -5px rgb(0 0 0 / 0.15);
   transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--transition-slow);
   z-index: 1000;
-  max-height: 70vh;
+  max-height: 85vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .bottom-sheet.open {
   transform: translateY(0);
 }
 
+.bottom-sheet.dragging {
+  transition: none;
+}
+
+.bottom-sheet-handle {
+  width: 36px;
+  height: 5px;
+  background: var(--color-neutral-300);
+  border-radius: 3px;
+  margin: 0 auto;
+  cursor: grab;
+}
+
+.bottom-sheet-handle:active {
+  cursor: grabbing;
+  background: var(--color-neutral-400);
+}
+
 .bottom-sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.5);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-normal);
   z-index: 999;
+  backdrop-filter: blur(2px);
 }
 
 .bottom-sheet-overlay.open {
@@ -84,7 +170,381 @@ body {
   pointer-events: all;
 }
 
-/* Bottom navigation */
+/* ==========================================
+   SEARCH BAR - Airbnb Style
+   ========================================== */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: 100px;
+  padding: 12px 20px;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.search-bar:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.search-bar.focused {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(194, 65, 12, 0.15);
+}
+
+.search-bar-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-neutral-500);
+  flex-shrink: 0;
+}
+
+.search-bar-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--color-neutral-900);
+  outline: none;
+}
+
+.search-bar-input::placeholder {
+  color: var(--color-neutral-400);
+}
+
+.search-bar-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-600);
+  transition: all var(--transition-fast);
+}
+
+.search-bar-clear:hover {
+  background: var(--color-neutral-300);
+}
+
+/* ==========================================
+   COUNTDOWN TIMER
+   ========================================== */
+.countdown-container {
+  text-align: center;
+}
+
+.countdown-label {
+  font-size: 14px;
+  color: var(--color-neutral-600);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.countdown-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.countdown-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.countdown-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-neutral-900);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown-unit-label {
+  font-size: 11px;
+  color: var(--color-neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.countdown-separator {
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--color-neutral-300);
+  margin-bottom: 16px;
+}
+
+.countdown-complete {
+  padding: 16px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 16px;
+  text-align: center;
+}
+
+/* ==========================================
+   CONFETTI CELEBRATION
+   ========================================== */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.confetti-particle {
+  position: absolute;
+  top: -10px;
+  border-radius: 2px;
+  animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* ==========================================
+   PHOTO GALLERY
+   ========================================== */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+@media (min-width: 768px) {
+  .photo-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+}
+
+.photo-grid-item {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .photo-grid-item {
+    border-radius: 12px;
+  }
+}
+
+.photo-grid-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.photo-grid-item:hover .photo-grid-image {
+  transform: scale(1.05);
+}
+
+.photo-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+  opacity: 0;
+}
+
+.photo-grid-item:hover .photo-grid-overlay {
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 1;
+}
+
+/* Upload Zone */
+.upload-zone {
+  border: 2px dashed var(--color-neutral-300);
+  border-radius: 20px;
+  padding: 32px;
+  text-align: center;
+  transition: all var(--transition-fast);
+  background: white;
+  cursor: pointer;
+}
+
+.upload-zone:hover,
+.upload-zone.active {
+  border-color: var(--color-primary);
+  background: rgba(194, 65, 12, 0.02);
+}
+
+.upload-zone.uploading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.upload-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.upload-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+}
+
+.upload-zone:hover .upload-icon {
+  background: rgba(194, 65, 12, 0.1);
+}
+
+.upload-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-neutral-200);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================
+   LIGHTBOX
+   ========================================== */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.lightbox-overlay.open {
+  opacity: 1;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+  z-index: 10;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast);
+  z-index: 10;
+}
+
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-nav-prev {
+  left: 16px;
+}
+
+.lightbox-nav-next {
+  right: 16px;
+}
+
+.lightbox-image-container {
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.lightbox-caption {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: white;
+  padding: 12px 24px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.lightbox-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+/* ==========================================
+   BOTTOM NAVIGATION - Enhanced
+   ========================================== */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -92,7 +552,7 @@ body {
   right: 0;
   background: white;
   border-top: 1px solid var(--color-neutral-200);
-  padding: 0.75rem 0 env(safe-area-inset-bottom);
+  padding: 0.5rem 0 env(safe-area-inset-bottom);
   z-index: 50;
 }
 
@@ -102,7 +562,23 @@ body {
   }
 }
 
-/* Floating label inputs */
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  transition: all var(--transition-fast);
+}
+
+.bottom-nav-item.active {
+  background: rgba(194, 65, 12, 0.08);
+}
+
+/* ==========================================
+   FLOATING LABEL INPUTS - Enhanced
+   ========================================== */
 .floating-label-group {
   position: relative;
   margin-bottom: 1.5rem;
@@ -114,7 +590,7 @@ body {
   border: 1px solid var(--color-neutral-300);
   border-radius: 12px;
   font-size: 1rem;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   background: white;
 }
 
@@ -131,7 +607,7 @@ body {
   font-size: 1rem;
   color: var(--color-neutral-500);
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .floating-label-input:focus ~ .floating-label,
@@ -141,22 +617,31 @@ body {
   color: var(--color-primary);
 }
 
-/* Tree node animations */
+/* ==========================================
+   TREE NODE ANIMATIONS
+   ========================================== */
 .tree-node {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all var(--transition-normal);
 }
 
 .tree-node:active {
   transform: scale(0.95);
 }
 
-/* Horizontal scroll container */
+/* ==========================================
+   HORIZONTAL SCROLL - Enhanced
+   ========================================== */
 .horizontal-scroll {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: var(--color-neutral-300) transparent;
+  scroll-snap-type: x mandatory;
+}
+
+.horizontal-scroll > * {
+  scroll-snap-align: start;
 }
 
 .horizontal-scroll::-webkit-scrollbar {
@@ -176,7 +661,9 @@ body {
   background: var(--color-neutral-400);
 }
 
-/* Clean animations */
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -192,10 +679,19 @@ body {
   animation: fadeIn 0.4s ease;
 }
 
-/* PWA Install Prompt - Modern */
-.install-prompt {
-  animation: slideUp 0.3s ease-out forwards;
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
 }
+
+/* Staggered animation for lists */
+.stagger-animation > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-animation > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-animation > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-animation > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-animation > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-animation > *:nth-child(6) { animation-delay: 250ms; }
+.stagger-animation > *:nth-child(7) { animation-delay: 300ms; }
+.stagger-animation > *:nth-child(8) { animation-delay: 350ms; }
 
 @keyframes slideUp {
   from {
@@ -208,15 +704,47 @@ body {
   }
 }
 
-/* Remove old festive styles */
-.butterfly,
-.confetti,
-.festive-card,
-.celebration-title {
-  display: none;
+.install-prompt {
+  animation: slideUp 0.3s ease-out forwards;
 }
 
-/* PWA Fullscreen support */
+/* ==========================================
+   BUTTON PRESS EFFECTS
+   ========================================== */
+.btn-press {
+  transition: transform var(--transition-fast);
+}
+
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* Primary button with enhanced states */
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  font-weight: 500;
+  padding: 16px 24px;
+  border-radius: 12px;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-light);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  background: var(--color-neutral-400);
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   PWA & MOBILE SUPPORT
+   ========================================== */
 @media (display-mode: standalone) {
   body {
     padding-top: env(safe-area-inset-top);
@@ -224,7 +752,6 @@ body {
   }
 }
 
-/* Mobile-first spacing */
 .container-mobile {
   padding-left: 1rem;
   padding-right: 1rem;
@@ -235,4 +762,37 @@ body {
     padding-left: 2rem;
     padding-right: 2rem;
   }
+}
+
+/* ==========================================
+   UTILITY CLASSES
+   ========================================== */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Pulse animation for attention */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
 }
