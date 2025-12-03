@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { SkeletonPhotoGrid } from '../components/Skeleton';
 import Lightbox from '../components/Lightbox';
 
+// Use environment variable or default to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function Gallery() {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,23 +13,24 @@ function Gallery() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [dragActive, setDragActive] = useState(false);
 
-  useEffect(() => {
-    fetchPhotos();
-  }, []);
-
-  const fetchPhotos = async () => {
+  const fetchPhotos = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/gallery');
+      const response = await fetch(`${API_URL}/api/gallery`);
       const data = await response.json();
       setPhotos(data);
     } catch (error) {
       console.error('Error fetching photos:', error);
+      setMessage({ type: 'error', text: 'Unable to load photos. Please try again.' });
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleUpload = async (files) => {
+  useEffect(() => {
+    fetchPhotos();
+  }, [fetchPhotos]);
+
+  const handleUpload = useCallback(async (files) => {
     if (!files || files.length === 0) return;
 
     setUploading(true);
@@ -38,7 +42,7 @@ function Gallery() {
     });
 
     try {
-      const response = await fetch('http://localhost:3001/api/gallery/upload', {
+      const response = await fetch(`${API_URL}/api/gallery/upload`, {
         method: 'POST',
         body: formData
       });
@@ -49,14 +53,14 @@ function Gallery() {
         setMessage({ type: 'success', text: `${result.uploaded} photo(s) uploaded!` });
         fetchPhotos();
       } else {
-        setMessage({ type: 'error', text: result.message || 'Upload failed' });
+        setMessage({ type: 'error', text: result.message || 'Upload failed. Please try again.' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+      setMessage({ type: 'error', text: 'Network error. Please check your connection and try again.' });
     } finally {
       setUploading(false);
     }
-  };
+  }, [fetchPhotos]);
 
   const handleDrag = useCallback((e) => {
     e.preventDefault();
@@ -76,7 +80,7 @@ function Gallery() {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleUpload(e.dataTransfer.files);
     }
-  }, []);
+  }, [handleUpload]);
 
   const handleFileInput = (e) => {
     handleUpload(e.target.files);
@@ -99,7 +103,7 @@ function Gallery() {
   };
 
   const lightboxImages = photos.map(photo => ({
-    url: `http://localhost:3001${photo.url}`,
+    url: `${API_URL}${photo.url}`,
     caption: photo.caption,
     uploadedBy: photo.uploadedBy
   }));
@@ -133,6 +137,8 @@ function Gallery() {
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
+          role="button"
+          aria-label="Photo upload area"
         >
           <input
             type="file"
@@ -142,6 +148,7 @@ function Gallery() {
             className="hidden"
             id="photo-upload"
             disabled={uploading}
+            aria-label="Choose photos to upload"
           />
           <label htmlFor="photo-upload" className="upload-zone-content">
             {uploading ? (
@@ -182,14 +189,15 @@ function Gallery() {
                   key={photo.id}
                   onClick={() => openLightbox(index)}
                   className="photo-grid-item group"
+                  aria-label={`View photo${photo.caption ? ': ' + photo.caption : ' ' + (index + 1)}`}
                 >
                   <img
-                    src={`http://localhost:3001${photo.url}`}
+                    src={`${API_URL}${photo.url}`}
                     alt={photo.caption || 'Gallery photo'}
                     className="photo-grid-image"
                     loading="lazy"
                   />
-                  <div className="photo-grid-overlay">
+                  <div className="photo-grid-overlay" aria-hidden="true">
                     <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                     </svg>

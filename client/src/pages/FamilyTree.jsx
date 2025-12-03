@@ -3,6 +3,9 @@ import BottomSheet from '../components/BottomSheet';
 import SearchBar from '../components/SearchBar';
 import { SkeletonFamilyTree } from '../components/Skeleton';
 
+// Use environment variable or default to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function FamilyTree() {
   const [familyData, setFamilyData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +14,7 @@ function FamilyTree() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:3001/api/family')
+    fetch(`${API_URL}/api/family`)
       .then(res => res.json())
       .then(data => {
         const sorted = data.sort((a, b) => a.generation - b.generation);

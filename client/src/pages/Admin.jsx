@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 
+// Use environment variable or default to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function Admin() {
   const [familyData, setFamilyData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +16,8 @@ function Admin() {
   const fetchData = async () => {
     try {
       const [familyRes, statsRes] = await Promise.all([
-        fetch('http://localhost:3001/api/family'),
-        fetch('http://localhost:3001/api/stats')
+        fetch(`${API_URL}/api/family`),
+        fetch(`${API_URL}/api/stats`)
       ]);
 
       const familyData = await familyRes.json();
@@ -168,7 +171,7 @@ function Admin() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {member.photo ? (
                           <img
-                            src={`http://localhost:3001${member.photo}`}
+                            src={`${API_URL}${member.photo}`}
                             alt={member.name}
                             className="w-12 h-12 rounded-full object-cover"
                           />
