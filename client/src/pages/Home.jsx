@@ -5,7 +5,7 @@ import Countdown from '../components/Countdown';
 import { SkeletonStats } from '../components/Skeleton';
 
 // Set your reunion date here
-const REUNION_DATE = '2025-07-15T10:00:00';
+const REUNION_DATE = '2025-12-13T10:00:00';
 
 function Home() {
   const canvasRef = useRef(null);
@@ -209,7 +209,7 @@ function Home() {
               Save the Date
             </h3>
             <p className="text-neutral-600">
-              July 15, 2025 - Mark your calendars for this special gathering!
+              December 13, 2025 - Mark your calendars for this special gathering!
             </p>
           </div>
         </div>
