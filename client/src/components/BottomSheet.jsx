@@ -1,6 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function BottomSheet({ isOpen, onClose, member }) {
+  const sheetRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [currentY, setCurrentY] = useState(0);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -11,6 +16,39 @@ function BottomSheet({ isOpen, onClose, member }) {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // Touch handlers for swipe-to-dismiss
+  const handleTouchStart = (e) => {
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+    setCurrentY(0);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const deltaY = e.touches[0].clientY - startY;
+    // Only allow dragging down
+    if (deltaY > 0) {
+      setCurrentY(deltaY);
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = `translateY(${deltaY}px)`;
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    // If dragged more than 100px, close the sheet
+    if (currentY > 100) {
+      onClose();
+    } else {
+      // Snap back
+      if (sheetRef.current) {
+        sheetRef.current.style.transform = '';
+      }
+    }
+    setCurrentY(0);
+  };
 
   if (!member) return null;
 
@@ -23,10 +61,18 @@ function BottomSheet({ isOpen, onClose, member }) {
       />
 
       {/* Bottom Sheet */}
-      <div className={`bottom-sheet ${isOpen ? 'open' : ''}`}>
-        {/* Handle */}
-        <div className="flex justify-center py-3">
-          <div className="w-12 h-1 bg-neutral-300 rounded-full"></div>
+      <div
+        ref={sheetRef}
+        className={`bottom-sheet ${isOpen ? 'open' : ''} ${isDragging ? 'dragging' : ''}`}
+      >
+        {/* Handle - Swipe to dismiss */}
+        <div
+          className="flex justify-center py-4 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="bottom-sheet-handle"></div>
         </div>
 
         {/* Content */}
@@ -37,7 +83,7 @@ function BottomSheet({ isOpen, onClose, member }) {
               <img
                 src={`http://localhost:3001${member.photo}`}
                 alt={member.name}
-                className="w-32 h-32 rounded-full object-cover shadow-lg"
+                className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-white"
               />
             </div>
           )}
@@ -48,7 +94,7 @@ function BottomSheet({ isOpen, onClose, member }) {
           </h2>
 
           {/* Details Grid */}
-          <div className="space-y-4">
+          <div className="space-y-1">
             <DetailItem label="Relationship" value={member.relationshipType} />
             <DetailItem label="Connected Through" value={member.connectedThrough} />
             <DetailItem label="Generation" value={`Generation ${member.generation}`} />
@@ -61,7 +107,7 @@ function BottomSheet({ isOpen, onClose, member }) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="w-full mt-8 bg-orange-600 hover:bg-orange-700 text-white font-medium py-3 rounded-xl transition-colors"
+            className="w-full mt-8 bg-orange-600 hover:bg-orange-700 text-white font-medium py-4 rounded-xl transition-all btn-press"
           >
             Close
           </button>
@@ -75,9 +121,9 @@ function DetailItem({ label, value }) {
   if (!value) return null;
 
   return (
-    <div className="flex justify-between items-start py-3 border-b border-neutral-200 last:border-0">
+    <div className="flex justify-between items-start py-4 border-b border-neutral-100 last:border-0">
       <span className="text-sm font-medium text-neutral-500">{label}</span>
-      <span className="text-sm text-neutral-900 text-right max-w-[60%]">{value}</span>
+      <span className="text-sm text-neutral-900 text-right max-w-[60%] font-medium">{value}</span>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Confetti from '../components/Confetti';
 
 function Register() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ function Register() {
   const [photoPreview, setPhotoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -60,10 +62,11 @@ function Register() {
       const result = await response.json();
 
       if (result.success) {
-        setMessage({ type: 'success', text: 'Registration successful! Redirecting...' });
+        setMessage({ type: 'success', text: 'Welcome to the family! Redirecting...' });
+        setShowConfetti(true);
         setTimeout(() => {
           navigate('/family-tree');
-        }, 1500);
+        }, 2500);
       } else {
         setMessage({ type: 'error', text: result.message || 'Registration failed' });
       }
@@ -77,6 +80,9 @@ function Register() {
 
   return (
     <div className="min-h-screen bg-neutral-50 py-8 px-4">
+      {/* Confetti celebration */}
+      <Confetti active={showConfetti} duration={2500} />
+
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -86,12 +92,23 @@ function Register() {
 
         {/* Message */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-xl ${
+          <div className={`mb-6 p-4 rounded-xl animate-fade-in ${
             message.type === 'success'
               ? 'bg-green-50 text-green-800 border border-green-200'
               : 'bg-red-50 text-red-800 border border-red-200'
           }`}>
-            {message.text}
+            <div className="flex items-center gap-3">
+              {message.type === 'success' ? (
+                <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
+              <span>{message.text}</span>
+            </div>
           </div>
         )}
 
@@ -106,17 +123,17 @@ function Register() {
                 <img
                   src={photoPreview}
                   alt="Preview"
-                  className="w-24 h-24 rounded-full object-cover"
+                  className="w-24 h-24 rounded-full object-cover ring-4 ring-orange-100"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 flex items-center justify-center text-neutral-400">
                   <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
               )}
               <label className="cursor-pointer">
-                <span className="inline-block px-5 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-xl transition-colors">
+                <span className="inline-block px-5 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-xl transition-all btn-press">
                   Choose Photo
                 </span>
                 <input
@@ -234,9 +251,17 @@ function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-neutral-400 text-white font-medium py-4 rounded-xl transition-colors mt-6"
+            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-neutral-400 text-white font-medium py-4 rounded-xl transition-all mt-6 btn-press"
           >
-            {loading ? 'Registering...' : 'Register'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Registering...
+              </span>
+            ) : 'Register'}
           </button>
         </form>
       </div>
