@@ -62,8 +62,8 @@ function Register() {
       if (result.success) {
         setMessage({ type: 'success', text: 'Registration successful! Redirecting...' });
         setTimeout(() => {
-          navigate('/');
-        }, 2000);
+          navigate('/family-tree');
+        }, 1500);
       } else {
         setMessage({ type: 'error', text: result.message || 'Registration failed' });
       }
@@ -76,195 +76,213 @@ function Register() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="festive-card bg-white rounded-2xl shadow-2xl p-10">
-        <h2 className="text-4xl font-bold text-amber-900 mb-8 text-center celebration-title" style={{fontFamily: "'Dancing Script', cursive"}}>
-          🌸 Family Registration 🌸
-        </h2>
+    <div className="min-h-screen bg-neutral-50 py-8 px-4">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold text-neutral-900 mb-2">Register</h1>
+          <p className="text-neutral-600">Join the Madrigal family reunion</p>
+        </div>
 
+        {/* Message */}
         {message.text && (
-          <div className={`mb-6 p-4 rounded-lg ${
+          <div className={`mb-6 p-4 rounded-xl ${
             message.type === 'success'
-              ? 'bg-green-100 text-green-800 border border-green-300'
-              : 'bg-red-100 text-red-800 border border-red-300'
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
           }`}>
             {message.text}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Full Name *
+        <form onSubmit={handleSubmit} className="modern-card p-6 md:p-8">
+          {/* Photo Upload - First */}
+          <div className="mb-8">
+            <label className="block text-sm font-medium text-neutral-700 mb-3">
+              Profile Photo
             </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="your.email@example.com"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Phone Number *
-              </label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                placeholder="(555) 123-4567"
-              />
-            </div>
-          </div>
-
-          {/* Family Information */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Relationship Type *
-            </label>
-            <select
-              name="relationshipType"
-              value={formData.relationshipType}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            >
-              <option value="">Select relationship type</option>
-              <option value="Immediate Family">Immediate Family</option>
-              <option value="Spouse">Spouse</option>
-              <option value="Child">Child</option>
-              <option value="Grandchild">Grandchild</option>
-              <option value="Sibling">Sibling</option>
-              <option value="Cousin">Cousin</option>
-              <option value="Aunt/Uncle">Aunt/Uncle</option>
-              <option value="Niece/Nephew">Niece/Nephew</option>
-              <option value="In-law">In-law</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Connected Through (Name) *
-            </label>
-            <input
-              type="text"
-              name="connectedThrough"
-              value={formData.connectedThrough}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              placeholder="e.g., Abuela Alma, Julieta Madrigal"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Generation *
-              </label>
-              <select
-                name="generation"
-                value={formData.generation}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              >
-                <option value="">Select generation</option>
-                <option value="1">1st Generation</option>
-                <option value="2">2nd Generation</option>
-                <option value="3">3rd Generation</option>
-                <option value="4">4th Generation</option>
-                <option value="5">5th Generation</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Number of Attendees *
-              </label>
-              <input
-                type="number"
-                name="attendees"
-                value={formData.attendees}
-                onChange={handleInputChange}
-                required
-                min="1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Family Branch Description *
-            </label>
-            <textarea
-              name="familyBranch"
-              value={formData.familyBranch}
-              onChange={handleInputChange}
-              required
-              rows="3"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-              placeholder="Describe your family branch (e.g., Mirabel's side, Isabela's descendants, etc.)"
-            />
-          </div>
-
-          {/* Photo Upload */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Upload Photo
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-            />
-            {photoPreview && (
-              <div className="mt-4">
+            <div className="flex items-center gap-6">
+              {photoPreview ? (
                 <img
                   src={photoPreview}
                   alt="Preview"
-                  className="w-32 h-32 object-cover rounded-lg border-2 border-amber-500"
+                  className="w-24 h-24 rounded-full object-cover"
                 />
-              </div>
-            )}
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-500">
+                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+              )}
+              <label className="cursor-pointer">
+                <span className="inline-block px-5 py-2.5 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-xl transition-colors">
+                  Choose Photo
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
 
+          {/* Name */}
+          <FloatingLabelInput
+            label="Full Name"
+            name="name"
+            type="text"
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+          />
+
+          {/* Email & Phone */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <FloatingLabelInput
+              label="Email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+            />
+            <FloatingLabelInput
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          {/* Relationship Type */}
+          <FloatingLabelSelect
+            label="Relationship Type"
+            name="relationshipType"
+            value={formData.relationshipType}
+            onChange={handleInputChange}
+            required
+            options={[
+              { value: '', label: '' },
+              { value: 'Immediate Family', label: 'Immediate Family' },
+              { value: 'Spouse', label: 'Spouse' },
+              { value: 'Child', label: 'Child' },
+              { value: 'Grandchild', label: 'Grandchild' },
+              { value: 'Sibling', label: 'Sibling' },
+              { value: 'Cousin', label: 'Cousin' },
+              { value: 'Aunt/Uncle', label: 'Aunt/Uncle' },
+              { value: 'Niece/Nephew', label: 'Niece/Nephew' },
+              { value: 'In-law', label: 'In-law' },
+              { value: 'Other', label: 'Other' }
+            ]}
+          />
+
+          {/* Connected Through */}
+          <FloatingLabelInput
+            label="Connected Through"
+            name="connectedThrough"
+            type="text"
+            value={formData.connectedThrough}
+            onChange={handleInputChange}
+            required
+            helper="e.g., Abuela Alma, Julieta Madrigal"
+          />
+
+          {/* Generation & Attendees */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <FloatingLabelSelect
+              label="Generation"
+              name="generation"
+              value={formData.generation}
+              onChange={handleInputChange}
+              required
+              options={[
+                { value: '', label: '' },
+                { value: '1', label: '1st Generation' },
+                { value: '2', label: '2nd Generation' },
+                { value: '3', label: '3rd Generation' },
+                { value: '4', label: '4th Generation' },
+                { value: '5', label: '5th Generation' }
+              ]}
+            />
+            <FloatingLabelInput
+              label="Number of Attendees"
+              name="attendees"
+              type="number"
+              min="1"
+              value={formData.attendees}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          {/* Family Branch */}
+          <FloatingLabelTextarea
+            label="Family Branch Description"
+            name="familyBranch"
+            value={formData.familyBranch}
+            onChange={handleInputChange}
+            required
+            rows={3}
+          />
+
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-amber-600 hover:bg-amber-700 disabled:bg-gray-400 text-white font-bold py-3 px-6 rounded-lg transition"
+            className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-neutral-400 text-white font-medium py-4 rounded-xl transition-colors mt-6"
           >
             {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
       </div>
+    </div>
+  );
+}
+
+function FloatingLabelInput({ label, helper, ...props }) {
+  return (
+    <div className="floating-label-group">
+      <input
+        {...props}
+        placeholder=" "
+        className="floating-label-input"
+      />
+      <label className="floating-label">{label}</label>
+      {helper && <p className="text-xs text-neutral-500 mt-1 ml-1">{helper}</p>}
+    </div>
+  );
+}
+
+function FloatingLabelSelect({ label, options, ...props }) {
+  return (
+    <div className="floating-label-group">
+      <select
+        {...props}
+        className="floating-label-input"
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+      <label className="floating-label">{label}</label>
+    </div>
+  );
+}
+
+function FloatingLabelTextarea({ label, ...props }) {
+  return (
+    <div className="floating-label-group">
+      <textarea
+        {...props}
+        placeholder=" "
+        className="floating-label-input resize-none"
+      />
+      <label className="floating-label">{label}</label>
     </div>
   );
 }

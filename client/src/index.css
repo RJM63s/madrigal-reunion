@@ -1,94 +1,203 @@
 @import "tailwindcss";
 
-/* Custom styles */
+/* Modern Design System */
+:root {
+  --color-primary: #c2410c;
+  --color-primary-light: #ea580c;
+  --color-neutral-50: #fafaf9;
+  --color-neutral-100: #f5f5f4;
+  --color-neutral-200: #e7e5e4;
+  --color-neutral-300: #d6d3d1;
+  --color-neutral-400: #a8a29e;
+  --color-neutral-500: #78716c;
+  --color-neutral-600: #57534e;
+  --color-neutral-700: #44403c;
+  --color-neutral-800: #292524;
+  --color-neutral-900: #1c1917;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: var(--color-neutral-50);
+  color: var(--color-neutral-800);
+  font-weight: 400;
+  line-height: 1.6;
 }
 
-h1, h2, h3, .display-font {
-  font-family: 'Dancing Script', cursive;
+/* Logo font only */
+.logo-font {
+  font-family: 'Pacifico', cursive;
 }
 
-/* Butterfly decorations */
-.butterfly {
+/* Modern card styling */
+.modern-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Bottom sheet modal */
+.bottom-sheet {
   position: fixed;
-  font-size: 24px;
-  animation: float 15s infinite ease-in-out;
-  pointer-events: none;
-  z-index: 10;
-  opacity: 0.6;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -10px 25px -5px rgb(0 0 0 / 0.1);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
-.butterfly:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
-.butterfly:nth-child(2) { top: 20%; right: 10%; animation-delay: 3s; }
-.butterfly:nth-child(3) { bottom: 15%; left: 15%; animation-delay: 6s; }
-.butterfly:nth-child(4) { bottom: 25%; right: 8%; animation-delay: 9s; }
-
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(20px, -20px) rotate(5deg); }
-  50% { transform: translate(-15px, -40px) rotate(-5deg); }
-  75% { transform: translate(15px, -20px) rotate(3deg); }
+.bottom-sheet.open {
+  transform: translateY(0);
 }
 
-/* Confetti effect */
-.confetti {
+.bottom-sheet-overlay {
   position: fixed;
-  width: 10px;
-  height: 10px;
-  background-color: #f59e0b;
-  position: absolute;
-  animation: confetti-fall 8s linear infinite;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  opacity: 0;
   pointer-events: none;
-  z-index: 5;
+  transition: opacity 0.3s ease;
+  z-index: 999;
 }
 
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(-100vh) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100vh) rotate(720deg);
-    opacity: 0;
+.bottom-sheet-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Bottom navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid var(--color-neutral-200);
+  padding: 0.75rem 0 env(safe-area-inset-bottom);
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none;
   }
 }
 
-/* Festive card borders */
-.festive-card {
-  background: linear-gradient(white, white) padding-box,
-              linear-gradient(135deg, #f59e0b, #ef4444, #ec4899, #8b5cf6) border-box;
-  border: 3px solid transparent;
+/* Floating label inputs */
+.floating-label-group {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.floating-label-input {
+  width: 100%;
+  padding: 1.25rem 1rem 0.5rem;
+  border: 1px solid var(--color-neutral-300);
   border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  background: white;
 }
 
-/* Celebration title animation */
-.celebration-title {
-  animation: gentle-bounce 2s ease-in-out infinite;
+.floating-label-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.1);
 }
 
-@keyframes gentle-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+.floating-label {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  font-size: 1rem;
+  color: var(--color-neutral-500);
+  pointer-events: none;
+  transition: all 0.2s ease;
 }
 
-/* Smooth transitions for tree nodes */
+.floating-label-input:focus ~ .floating-label,
+.floating-label-input:not(:placeholder-shown) ~ .floating-label {
+  top: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-primary);
+}
+
+/* Tree node animations */
 .tree-node {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.tree-node:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 8px 16px rgba(245, 158, 11, 0.4));
+.tree-node:active {
+  transform: scale(0.95);
 }
 
-/* PWA Install Prompt Animation */
-.animate-slide-up {
-  animation: slide-up 0.5s ease-out forwards;
+/* Horizontal scroll container */
+.horizontal-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-300) transparent;
 }
 
-@keyframes slide-up {
+.horizontal-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 3px;
+}
+
+.horizontal-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
+}
+
+/* Clean animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+/* PWA Install Prompt - Modern */
+.install-prompt {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
   from {
     transform: translateY(100%);
     opacity: 0;
@@ -99,10 +208,31 @@ h1, h2, h3, .display-font {
   }
 }
 
+/* Remove old festive styles */
+.butterfly,
+.confetti,
+.festive-card,
+.celebration-title {
+  display: none;
+}
+
 /* PWA Fullscreen support */
 @media (display-mode: standalone) {
   body {
     padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(env(safe-area-inset-bottom) + 60px);
+  }
+}
+
+/* Mobile-first spacing */
+.container-mobile {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-mobile {
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
