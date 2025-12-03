@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Confetti from '../components/Confetti';
 
+// Use environment variable or default to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function Register() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -54,7 +57,7 @@ function Register() {
         formDataToSend.append('photo', photo);
       }
 
-      const response = await fetch('http://localhost:3001/api/register', {
+      const response = await fetch(`${API_URL}/api/register`, {
         method: 'POST',
         body: formDataToSend
       });
@@ -68,10 +71,10 @@ function Register() {
           navigate('/family-tree');
         }, 2500);
       } else {
-        setMessage({ type: 'error', text: result.message || 'Registration failed' });
+        setMessage({ type: 'error', text: result.message || 'Registration failed. Please try again.' });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+      setMessage({ type: 'error', text: 'Network error. Please check your connection and try again.' });
       console.error('Registration error:', error);
     } finally {
       setLoading(false);

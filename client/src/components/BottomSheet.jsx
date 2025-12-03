@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
+// Use environment variable or default to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 function BottomSheet({ isOpen, onClose, member }) {
   const sheetRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -81,7 +84,7 @@ function BottomSheet({ isOpen, onClose, member }) {
           {member.photo && (
             <div className="flex justify-center mb-6">
               <img
-                src={`http://localhost:3001${member.photo}`}
+                src={`${API_URL}${member.photo}`}
                 alt={member.name}
                 className="w-32 h-32 rounded-full object-cover shadow-lg ring-4 ring-white"
               />

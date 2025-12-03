@@ -5,13 +5,37 @@ const path = require('path');
 const fs = require('fs').promises;
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Middleware
-app.use(cors());
+// Middleware - CORS configuration
+const corsOptions = {
+  origin: NODE_ENV === 'production'
+    ? [CLIENT_URL] // Only allow specific origin in production
+    : '*', // Allow all origins in development
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use('/gallery', express.static('gallery'));
+
+// Input validation helpers
+function sanitizeString(input, maxLength = 500) {
+  if (typeof input !== 'string') return '';
+  // Remove any HTML tags and script content
+  const cleaned = input
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+  return cleaned.substring(0, maxLength);
+}
+
+function validateEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
 
 // Ensure directories exist
 async function ensureDirectories() {
@@ -131,17 +155,26 @@ app.post('/api/register', upload.single('photo'), async (req, res) => {
   try {
     const familyData = await readFamilyData();
 
+    // Validate and sanitize inputs
+    const email = sanitizeString(req.body.email);
+    if (email && !validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format'
+      });
+    }
+
     const newMember = {
       id: Date.now().toString(),
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-      relationshipType: req.body.relationshipType,
-      connectedThrough: req.body.connectedThrough,
-      generation: parseInt(req.body.generation),
-      familyBranch: req.body.familyBranch,
+      name: sanitizeString(req.body.name, 100),
+      email: email,
+      phone: sanitizeString(req.body.phone, 20),
+      relationshipType: sanitizeString(req.body.relationshipType, 50),
+      connectedThrough: sanitizeString(req.body.connectedThrough, 100),
+      generation: parseInt(req.body.generation) || 0,
+      familyBranch: sanitizeString(req.body.familyBranch, 100),
       photo: req.file ? `/uploads/${req.file.filename}` : null,
-      attendees: parseInt(req.body.attendees),
+      attendees: parseInt(req.body.attendees) || 1,
       createdAt: new Date().toISOString()
     };
 
@@ -157,8 +190,8 @@ app.post('/api/register', upload.single('photo'), async (req, res) => {
     console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
-      error: error.message
+      message: 'Registration failed. Please try again.',
+      error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -171,8 +204,8 @@ app.get('/api/family', async (req, res) => {
     console.error('Error reading family data:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve family data',
-      error: error.message
+      message: 'Unable to load family data. Please try again later.',
+      error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -199,8 +232,8 @@ app.get('/api/stats', async (req, res) => {
     console.error('Error calculating stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to calculate statistics',
-      error: error.message
+      message: 'Unable to load statistics. Please try again later.',
+      error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -220,8 +253,8 @@ app.get('/api/gallery', async (req, res) => {
     console.error('Error reading gallery data:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve gallery',
-      error: error.message
+      message: 'Unable to load gallery. Please try again later.',
+      error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -232,19 +265,23 @@ app.post('/api/gallery/upload', galleryUpload.array('photos', 10), async (req, r
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No files uploaded'
+        message: 'No photos selected. Please choose photos to upload.'
       });
     }
 
     const galleryData = await readGalleryData();
     const newPhotos = [];
 
+    // Sanitize caption and uploadedBy to prevent XSS
+    const caption = sanitizeString(req.body.caption || '', 200);
+    const uploadedBy = sanitizeString(req.body.uploadedBy || 'Anonymous', 100);
+
     for (const file of req.files) {
       const photo = {
         id: Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9),
         url: `/gallery/${file.filename}`,
-        caption: req.body.caption || '',
-        uploadedBy: req.body.uploadedBy || 'Anonymous',
+        caption: caption,
+        uploadedBy: uploadedBy,
         createdAt: new Date().toISOString()
       };
       newPhotos.push(photo);
@@ -263,8 +300,8 @@ app.post('/api/gallery/upload', galleryUpload.array('photos', 10), async (req, r
     console.error('Gallery upload error:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to upload photos',
-      error: error.message
+      message: 'Upload failed. Please try again.',
+      error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -284,11 +321,22 @@ app.delete('/api/gallery/:id', async (req, res) => {
 
     const photo = galleryData[photoIndex];
 
-    // Delete file from disk
+    // Delete file from disk - FIX path traversal vulnerability
     try {
-      await fs.unlink(path.join(__dirname, photo.url));
+      // Extract filename from URL and validate it
+      const filename = path.basename(photo.url);
+      // Ensure the file is in the gallery directory (prevent path traversal)
+      const galleryDir = path.resolve(__dirname, 'gallery');
+      const filePath = path.resolve(galleryDir, filename);
+
+      // Verify the resolved path is still within the gallery directory
+      if (!filePath.startsWith(galleryDir)) {
+        throw new Error('Invalid file path');
+      }
+
+      await fs.unlink(filePath);
     } catch (err) {
-      console.log('File already deleted or not found');
+      console.log('File already deleted or not found:', err.message);
     }
 
     galleryData.splice(photoIndex, 1);
@@ -302,8 +350,8 @@ app.delete('/api/gallery/:id', async (req, res) => {
     console.error('Error deleting photo:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to delete photo',
-      error: error.message
+      message: 'Unable to delete photo. Please try again.',
+      error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
