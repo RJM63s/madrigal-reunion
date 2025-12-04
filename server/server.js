@@ -238,19 +238,25 @@ async function getRegistrationsFromSheet() {
     // Skip header row if it exists, map data to expected format
     // Columns: Name, Email, Phone, RelationshipType, ConnectedThrough, Generation, FamilyBranch, Attendees, CreatedAt
     const registrations = [];
+    let hasHeader = rows.length > 0 && (rows[0][0] === 'Name' || rows[0][0] === 'name');
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       // Skip header row (check if first cell looks like a header)
-      if (i === 0 && (row[0] === 'Name' || row[0] === 'name')) {
+      if (i === 0 && hasHeader) {
         continue;
       }
 
       // Skip empty rows
       if (!row[0]) continue;
 
+      // Calculate the actual sheet row number (1-indexed, accounting for header)
+      // Row 0 in array = Row 1 in sheet (header), Row 1 in array = Row 2 in sheet, etc.
+      const sheetRowNumber = i + 1; // +1 because sheets are 1-indexed
+
       registrations.push({
-        id: `sheet-${i}`, // Generate an ID based on row index
+        id: `sheet-row-${sheetRowNumber}`, // ID includes actual row number
+        sheetRow: sheetRowNumber, // Store the actual row number for deletion
         name: row[0] || '',
         email: row[1] || '',
         phone: row[2] || '',
@@ -498,6 +504,76 @@ app.get('/api/admin/stats', requireAdminPassword, async (req, res) => {
 app.delete('/api/admin/registrations/:id', requireAdminPassword, async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(`Delete request for ID: ${id}`);
+
+    // Check if this is a Google Sheets ID (format: sheet-row-X)
+    if (id.startsWith('sheet-row-') && GOOGLE_SHEETS_ENABLED) {
+      const rowNumber = parseInt(id.replace('sheet-row-', ''));
+      console.log(`Deleting Google Sheets row: ${rowNumber}`);
+
+      if (isNaN(rowNumber) || rowNumber < 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid row number'
+        });
+      }
+
+      try {
+        const sheets = getGoogleSheetsClient();
+        if (!sheets) {
+          return res.status(500).json({
+            success: false,
+            message: 'Google Sheets client not available'
+          });
+        }
+
+        // Get the member name before deleting (for the response message)
+        const response = await sheets.spreadsheets.values.get({
+          spreadsheetId: GOOGLE_SHEET_ID,
+          range: `Sheet1!A${rowNumber}:A${rowNumber}`
+        });
+        const memberName = response.data.values?.[0]?.[0] || 'Unknown';
+
+        // Get sheet ID for the delete operation
+        const sheetMetadata = await sheets.spreadsheets.get({
+          spreadsheetId: GOOGLE_SHEET_ID
+        });
+        const sheetId = sheetMetadata.data.sheets[0].properties.sheetId;
+
+        // Delete the row (startIndex is 0-based, so subtract 1)
+        await sheets.spreadsheets.batchUpdate({
+          spreadsheetId: GOOGLE_SHEET_ID,
+          resource: {
+            requests: [{
+              deleteDimension: {
+                range: {
+                  sheetId: sheetId,
+                  dimension: 'ROWS',
+                  startIndex: rowNumber - 1,
+                  endIndex: rowNumber
+                }
+              }
+            }]
+          }
+        });
+
+        console.log(`Google Sheets: Deleted row ${rowNumber} (${memberName})`);
+
+        return res.json({
+          success: true,
+          message: `Successfully deleted registration for ${memberName}`
+        });
+      } catch (sheetsError) {
+        console.error('Error deleting from Google Sheets:', sheetsError.message);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to delete from Google Sheets',
+          error: NODE_ENV === 'development' ? sheetsError.message : undefined
+        });
+      }
+    }
+
+    // Fall back to local JSON file deletion for non-sheet IDs
     const familyData = await readFamilyData();
     const memberIndex = familyData.findIndex(m => m.id === id);
 
@@ -514,60 +590,6 @@ app.delete('/api/admin/registrations/:id', requireAdminPassword, async (req, res
     // Remove from local JSON
     familyData.splice(memberIndex, 1);
     await writeFamilyData(familyData);
-
-    // Also remove from Google Sheets if enabled
-    if (GOOGLE_SHEETS_ENABLED) {
-      try {
-        const sheets = getGoogleSheetsClient();
-        if (sheets) {
-          // Get all rows to find the one to delete
-          const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: GOOGLE_SHEET_ID,
-            range: 'Sheet1!A:I'
-          });
-
-          const rows = response.data.values || [];
-          // Find the row index (add 1 for 1-based index, add 1 for header row)
-          let rowToDelete = -1;
-          for (let i = 1; i < rows.length; i++) {
-            // Check if email matches (column B is email, index 1)
-            if (rows[i][1] === member.email && rows[i][0] === member.name) {
-              rowToDelete = i + 1; // +1 for 1-based index
-              break;
-            }
-          }
-
-          if (rowToDelete > 0) {
-            // Get sheet ID
-            const sheetMetadata = await sheets.spreadsheets.get({
-              spreadsheetId: GOOGLE_SHEET_ID
-            });
-            const sheetId = sheetMetadata.data.sheets[0].properties.sheetId;
-
-            // Delete the row
-            await sheets.spreadsheets.batchUpdate({
-              spreadsheetId: GOOGLE_SHEET_ID,
-              resource: {
-                requests: [{
-                  deleteDimension: {
-                    range: {
-                      sheetId: sheetId,
-                      dimension: 'ROWS',
-                      startIndex: rowToDelete - 1,
-                      endIndex: rowToDelete
-                    }
-                  }
-                }]
-              }
-            });
-            console.log(`Google Sheets: Deleted row for ${memberName}`);
-          }
-        }
-      } catch (sheetsError) {
-        console.error('Error deleting from Google Sheets:', sheetsError.message);
-        // Don't fail the request if Google Sheets deletion fails
-      }
-    }
 
     console.log(`Deleted registration: ${memberName} (ID: ${id})`);
 
