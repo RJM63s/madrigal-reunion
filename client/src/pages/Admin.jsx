@@ -8,17 +8,135 @@ function Admin() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    fetchData();
+    // Check if password is already stored in sessionStorage
+    const storedPassword = sessionStorage.getItem('adminPassword');
+    if (storedPassword) {
+      setPassword(storedPassword);
+      verifyPassword(storedPassword);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchData = async () => {
+  const verifyPassword = async (pwd) => {
+    setIsVerifying(true);
+    setPasswordError('');
+
     try {
+      const response = await fetch(`${API_URL}/api/admin/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: pwd })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('adminPassword', pwd);
+        fetchData(pwd);
+      } else {
+        setPasswordError('Invalid password');
+        sessionStorage.removeItem('adminPassword');
+        setIsAuthenticated(false);
+        setLoading(false);
+      }
+    } catch (error) {
+      setPasswordError('Error verifying password');
+      setLoading(false);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (password.trim()) {
+      verifyPassword(password);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('adminPassword');
+    setIsAuthenticated(false);
+    setPassword('');
+    setFamilyData([]);
+    setStats(null);
+  };
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const handleDeleteClick = (member) => {
+    setDeleteConfirm(member);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+
+    setIsDeleting(true);
+    const adminPassword = sessionStorage.getItem('adminPassword');
+
+    try {
+      const response = await fetch(`${API_URL}/api/admin/registrations/${deleteConfirm.id}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Admin-Password': adminPassword
+        }
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setFamilyData(prev => prev.filter(m => m.id !== deleteConfirm.id));
+        setStats(prev => ({
+          ...prev,
+          totalMembers: prev.totalMembers - 1,
+          totalAttendees: prev.totalAttendees - (deleteConfirm.attendees || 0)
+        }));
+        showNotification(result.message, 'success');
+      } else {
+        showNotification(result.message || 'Failed to delete registration', 'error');
+      }
+    } catch (error) {
+      showNotification('Error deleting registration', 'error');
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirm(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirm(null);
+  };
+
+  const fetchData = async (adminPassword) => {
+    try {
+      const headers = {
+        'X-Admin-Password': adminPassword
+      };
+
       const [familyRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/api/family`),
-        fetch(`${API_URL}/api/stats`)
+        fetch(`${API_URL}/api/admin/registrations`, { headers }),
+        fetch(`${API_URL}/api/admin/stats`, { headers })
       ]);
+
+      if (!familyRes.ok || !statsRes.ok) {
+        throw new Error('Failed to fetch data');
+      }
 
       const familyData = await familyRes.json();
       const statsData = await statsRes.json();
@@ -62,6 +180,49 @@ function Admin() {
     a.click();
   };
 
+  // Show password prompt if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
+        <div className="modern-card p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Admin Access</h1>
+            <p className="text-neutral-600">Enter password to access the admin dashboard</p>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit}>
+            <div className="mb-6">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Admin password"
+                className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                disabled={isVerifying}
+              />
+              {passwordError && (
+                <p className="mt-2 text-sm text-red-600">{passwordError}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isVerifying || !password.trim()}
+              className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-neutral-400 text-white font-medium py-3 rounded-xl transition-colors"
+            >
+              {isVerifying ? 'Verifying...' : 'Access Dashboard'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -80,12 +241,20 @@ function Admin() {
               <h1 className="text-3xl font-semibold text-neutral-900 mb-2">Admin Dashboard</h1>
               <p className="text-neutral-600">Manage registrations and view statistics</p>
             </div>
-            <button
-              onClick={downloadCSV}
-              className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors"
-            >
-              Download CSV
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={downloadCSV}
+                className="px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors"
+              >
+                Download CSV
+              </button>
+              <button
+                onClick={handleLogout}
+                className="px-6 py-3 bg-neutral-200 hover:bg-neutral-300 text-neutral-700 font-medium rounded-xl transition-colors"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
 
@@ -163,6 +332,7 @@ function Admin() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Generation</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider hidden xl:table-cell">Branch</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Attendees</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-200">
@@ -203,6 +373,17 @@ function Admin() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900 text-center font-medium">
                         {member.attendees}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleDeleteClick(member)}
+                          className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                          title="Delete registration"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -226,6 +407,63 @@ function Admin() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="modern-card p-6 md:p-8 max-w-md w-full">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-neutral-900 mb-2">Delete Registration?</h3>
+              <p className="text-neutral-600 mb-6">
+                Are you sure you want to delete <span className="font-medium text-neutral-900">{deleteConfirm.name}</span>? This will remove them from both the database and Google Sheets. This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={handleDeleteCancel}
+                  disabled={isDeleting}
+                  className="px-6 py-3 bg-neutral-200 hover:bg-neutral-300 disabled:bg-neutral-100 text-neutral-700 font-medium rounded-xl transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  disabled={isDeleting}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium rounded-xl transition-colors"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className={`px-6 py-4 rounded-xl shadow-lg flex items-center gap-3 ${
+            notification.type === 'success'
+              ? 'bg-green-600 text-white'
+              : 'bg-red-600 text-white'
+          }`}>
+            {notification.type === 'success' ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            <span className="font-medium">{notification.message}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

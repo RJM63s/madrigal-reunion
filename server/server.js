@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -99,6 +100,27 @@ const galleryUpload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit for gallery
   fileFilter: fileFilter
 });
+
+// Password protection middleware for admin routes
+function requireAdminPassword(req, res, next) {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    console.warn('Warning: ADMIN_PASSWORD not set in environment variables. Admin routes are unprotected!');
+    return next();
+  }
+
+  const providedPassword = req.headers['x-admin-password'];
+
+  if (providedPassword === adminPassword) {
+    next();
+  } else {
+    res.status(401).json({
+      success: false,
+      message: 'Unauthorized: Invalid admin password'
+    });
+  }
+}
 
 // Initialize data files
 async function initializeDataFile() {
@@ -332,6 +354,161 @@ app.get('/api/stats', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Unable to load statistics. Please try again later.',
+      error: NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// ==========================================
+// ADMIN ROUTES (Password Protected)
+// ==========================================
+
+// Verify admin password endpoint
+app.post('/api/admin/verify', (req, res) => {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminPassword) {
+    return res.json({ success: true, message: 'No password configured' });
+  }
+
+  const providedPassword = req.body.password;
+
+  if (providedPassword === adminPassword) {
+    res.json({ success: true, message: 'Password verified' });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid password' });
+  }
+});
+
+// Protected admin routes
+app.get('/api/admin/registrations', requireAdminPassword, async (req, res) => {
+  try {
+    const familyData = await readFamilyData();
+    res.json(familyData);
+  } catch (error) {
+    console.error('Error reading family data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve family data',
+      error: NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+app.get('/api/admin/stats', requireAdminPassword, async (req, res) => {
+  try {
+    const familyData = await readFamilyData();
+    const stats = {
+      totalMembers: familyData.length,
+      totalAttendees: familyData.reduce((sum, member) => sum + (member.attendees || 0), 0),
+      byGeneration: familyData.reduce((acc, member) => {
+        acc[member.generation] = (acc[member.generation] || 0) + 1;
+        return acc;
+      }, {}),
+      byBranch: familyData.reduce((acc, member) => {
+        const branch = member.familyBranch || 'Unknown';
+        acc[branch] = (acc[branch] || 0) + 1;
+        return acc;
+      }, {})
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Error calculating stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to calculate statistics',
+      error: NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Delete registration endpoint
+app.delete('/api/admin/registrations/:id', requireAdminPassword, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const familyData = await readFamilyData();
+    const memberIndex = familyData.findIndex(m => m.id === id);
+
+    if (memberIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found'
+      });
+    }
+
+    const member = familyData[memberIndex];
+    const memberName = member.name;
+
+    // Remove from local JSON
+    familyData.splice(memberIndex, 1);
+    await writeFamilyData(familyData);
+
+    // Also remove from Google Sheets if enabled
+    if (GOOGLE_SHEETS_ENABLED) {
+      try {
+        const sheets = getGoogleSheetsClient();
+        if (sheets) {
+          // Get all rows to find the one to delete
+          const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: GOOGLE_SHEET_ID,
+            range: 'Sheet1!A:I'
+          });
+
+          const rows = response.data.values || [];
+          // Find the row index (add 1 for 1-based index, add 1 for header row)
+          let rowToDelete = -1;
+          for (let i = 1; i < rows.length; i++) {
+            // Check if email matches (column B is email, index 1)
+            if (rows[i][1] === member.email && rows[i][0] === member.name) {
+              rowToDelete = i + 1; // +1 for 1-based index
+              break;
+            }
+          }
+
+          if (rowToDelete > 0) {
+            // Get sheet ID
+            const sheetMetadata = await sheets.spreadsheets.get({
+              spreadsheetId: GOOGLE_SHEET_ID
+            });
+            const sheetId = sheetMetadata.data.sheets[0].properties.sheetId;
+
+            // Delete the row
+            await sheets.spreadsheets.batchUpdate({
+              spreadsheetId: GOOGLE_SHEET_ID,
+              resource: {
+                requests: [{
+                  deleteDimension: {
+                    range: {
+                      sheetId: sheetId,
+                      dimension: 'ROWS',
+                      startIndex: rowToDelete - 1,
+                      endIndex: rowToDelete
+                    }
+                  }
+                }]
+              }
+            });
+            console.log(`Google Sheets: Deleted row for ${memberName}`);
+          }
+        }
+      } catch (sheetsError) {
+        console.error('Error deleting from Google Sheets:', sheetsError.message);
+        // Don't fail the request if Google Sheets deletion fails
+      }
+    }
+
+    console.log(`Deleted registration: ${memberName} (ID: ${id})`);
+
+    res.json({
+      success: true,
+      message: `Successfully deleted registration for ${memberName}`
+    });
+  } catch (error) {
+    console.error('Error deleting registration:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete registration',
       error: NODE_ENV === 'development' ? error.message : undefined
     });
   }
