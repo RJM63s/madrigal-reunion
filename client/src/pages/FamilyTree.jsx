@@ -3,8 +3,8 @@ import BottomSheet from '../components/BottomSheet';
 import SearchBar from '../components/SearchBar';
 import { SkeletonFamilyTree } from '../components/Skeleton';
 
-// Use environment variable or default to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use environment variable, or empty string for same-origin requests in production
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 function FamilyTree() {
   const [familyData, setFamilyData] = useState([]);
@@ -215,7 +215,7 @@ function MemberCard({ member, onClick, style }) {
         <div className="flex-shrink-0">
           {member.photo ? (
             <img
-              src={`http://localhost:3001${member.photo}`}
+              src={`${API_URL}${member.photo}`}
               alt={member.name}
               className="w-16 h-16 rounded-full object-cover ring-2 ring-neutral-100"
             />

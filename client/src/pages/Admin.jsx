@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-// Use environment variable or default to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use environment variable, or empty string for same-origin requests in production
+// In development, VITE_API_URL should be set to http://localhost:3001
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 function Admin() {
   const [familyData, setFamilyData] = useState([]);
@@ -129,17 +130,33 @@ function Admin() {
         'X-Admin-Password': adminPassword
       };
 
+      const registrationsUrl = `${API_URL}/api/admin/registrations`;
+      const statsUrl = `${API_URL}/api/admin/stats`;
+
+      console.log('Fetching registrations from:', registrationsUrl);
+      console.log('Fetching stats from:', statsUrl);
+      console.log('Using headers:', { 'X-Admin-Password': adminPassword ? '[SET]' : '[NOT SET]' });
+
       const [familyRes, statsRes] = await Promise.all([
-        fetch(`${API_URL}/api/admin/registrations`, { headers }),
-        fetch(`${API_URL}/api/admin/stats`, { headers })
+        fetch(registrationsUrl, { headers }),
+        fetch(statsUrl, { headers })
       ]);
 
+      console.log('Registrations response status:', familyRes.status);
+      console.log('Stats response status:', statsRes.status);
+
       if (!familyRes.ok || !statsRes.ok) {
+        const familyError = !familyRes.ok ? await familyRes.text() : null;
+        const statsError = !statsRes.ok ? await statsRes.text() : null;
+        console.error('Response errors:', { familyError, statsError });
         throw new Error('Failed to fetch data');
       }
 
       const familyData = await familyRes.json();
       const statsData = await statsRes.json();
+
+      console.log('Fetched registrations:', familyData.length);
+      console.log('Fetched stats:', statsData);
 
       setFamilyData(familyData);
       setStats(statsData);

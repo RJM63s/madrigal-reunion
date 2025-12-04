@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import Countdown from '../components/Countdown';
 import { SkeletonStats } from '../components/Skeleton';
 
-// Use environment variable or default to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use environment variable, or empty string for same-origin requests in production
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 // Set your reunion date here
 const REUNION_DATE = '2025-12-13T10:00:00';

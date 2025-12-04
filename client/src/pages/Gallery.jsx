@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { SkeletonPhotoGrid } from '../components/Skeleton';
 import Lightbox from '../components/Lightbox';
 
-// Use environment variable or default to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use environment variable, or empty string for same-origin requests in production
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 function Gallery() {
   const [photos, setPhotos] = useState([]);

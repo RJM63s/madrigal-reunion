@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Confetti from '../components/Confetti';
 
-// Use environment variable or default to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Use environment variable, or empty string for same-origin requests in production
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 function Register() {
   const navigate = useNavigate();
