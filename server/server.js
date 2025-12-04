@@ -3,11 +3,18 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs').promises;
+const { google } = require('googleapis');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const NODE_ENV = process.env.NODE_ENV || 'development';
+
+// Google Sheets configuration
+const GOOGLE_SHEETS_ENABLED = process.env.GOOGLE_SHEETS_ENABLED === 'true';
+const GOOGLE_SHEET_ID = process.env.GOOGLE_SHEET_ID;
+const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
 // Middleware - CORS configuration
 const corsOptions = {
@@ -148,6 +155,93 @@ async function writeGalleryData(data) {
 }
 
 // ==========================================
+// GOOGLE SHEETS INTEGRATION
+// ==========================================
+
+let sheetsClient = null;
+
+// Initialize Google Sheets API client
+function getGoogleSheetsClient() {
+  if (!GOOGLE_SHEETS_ENABLED) {
+    return null;
+  }
+
+  if (sheetsClient) {
+    return sheetsClient;
+  }
+
+  try {
+    if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY || !GOOGLE_SHEET_ID) {
+      console.error('Google Sheets: Missing required environment variables');
+      return null;
+    }
+
+    const auth = new google.auth.JWT(
+      GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      null,
+      GOOGLE_PRIVATE_KEY,
+      ['https://www.googleapis.com/auth/spreadsheets']
+    );
+
+    sheetsClient = google.sheets({ version: 'v4', auth });
+    console.log('Google Sheets API client initialized successfully');
+    return sheetsClient;
+  } catch (error) {
+    console.error('Error initializing Google Sheets client:', error.message);
+    return null;
+  }
+}
+
+// Append registration data to Google Sheet
+async function appendToGoogleSheet(memberData) {
+  if (!GOOGLE_SHEETS_ENABLED) {
+    console.log('Google Sheets integration is disabled');
+    return;
+  }
+
+  const sheets = getGoogleSheetsClient();
+  if (!sheets) {
+    console.error('Google Sheets client not available');
+    return;
+  }
+
+  try {
+    const values = [[
+      memberData.name,
+      memberData.email,
+      memberData.phone,
+      memberData.relationshipType,
+      memberData.connectedThrough,
+      memberData.generation,
+      memberData.familyBranch,
+      memberData.attendees,
+      memberData.createdAt
+    ]];
+
+    const request = {
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: 'Sheet1!A:I', // Adjust sheet name if needed
+      valueInputOption: 'USER_ENTERED',
+      insertDataOption: 'INSERT_ROWS',
+      resource: {
+        values: values
+      }
+    };
+
+    const response = await sheets.spreadsheets.values.append(request);
+    console.log(`Google Sheets: Successfully appended registration for ${memberData.name}`);
+    console.log(`Google Sheets: Updated ${response.data.updates.updatedCells} cells`);
+  } catch (error) {
+    console.error('Error appending to Google Sheet:', error.message);
+    // Log additional details for debugging
+    if (error.response) {
+      console.error('Google Sheets API error details:', error.response.data);
+    }
+    // Don't throw - we don't want Google Sheets errors to break the registration
+  }
+}
+
+// ==========================================
 // FAMILY REGISTRATION ROUTES
 // ==========================================
 
@@ -180,6 +274,11 @@ app.post('/api/register', upload.single('photo'), async (req, res) => {
 
     familyData.push(newMember);
     await writeFamilyData(familyData);
+
+    // Append to Google Sheets (async, non-blocking)
+    appendToGoogleSheet(newMember).catch(err => {
+      console.error('Failed to append to Google Sheets:', err.message);
+    });
 
     res.json({
       success: true,
