@@ -365,7 +365,14 @@ Promise.all([
   initializeDataFile(),
   initializeGalleryFile()
 ]).then(() => {
-  app.listen(PORT, () => {
+  // Serve static files from React build
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Handle client-side routing - this must be LAST, after all API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 });
