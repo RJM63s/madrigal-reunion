@@ -82,24 +82,39 @@ function Admin() {
   };
 
   const handleDeleteClick = (member) => {
+    console.log('Delete clicked for member:', member.name, 'ID:', member.id);
     setDeleteConfirm(member);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!deleteConfirm) return;
+    console.log('handleDeleteConfirm called, deleteConfirm:', deleteConfirm);
+    if (!deleteConfirm) {
+      console.log('No deleteConfirm set, returning');
+      return;
+    }
 
     setIsDeleting(true);
     const adminPassword = sessionStorage.getItem('adminPassword');
+    const deleteUrl = `${API_URL}/api/admin/registrations/${deleteConfirm.id}`;
+
+    console.log('Deleting registration:', {
+      url: deleteUrl,
+      id: deleteConfirm.id,
+      name: deleteConfirm.name,
+      hasPassword: !!adminPassword
+    });
 
     try {
-      const response = await fetch(`${API_URL}/api/admin/registrations/${deleteConfirm.id}`, {
+      const response = await fetch(deleteUrl, {
         method: 'DELETE',
         headers: {
           'X-Admin-Password': adminPassword
         }
       });
 
+      console.log('Delete response status:', response.status);
       const result = await response.json();
+      console.log('Delete response:', result);
 
       if (result.success) {
         setFamilyData(prev => prev.filter(m => m.id !== deleteConfirm.id));
@@ -113,6 +128,7 @@ function Admin() {
         showNotification(result.message || 'Failed to delete registration', 'error');
       }
     } catch (error) {
+      console.error('Delete error:', error);
       showNotification('Error deleting registration', 'error');
     } finally {
       setIsDeleting(false);
