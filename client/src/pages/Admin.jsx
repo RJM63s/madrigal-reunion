@@ -180,6 +180,15 @@ function Admin() {
     a.click();
   };
 
+  // Show loading spinner while checking sessionStorage or verifying stored password
+  if (loading && !isAuthenticated) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-neutral-50">
+        <div className="text-neutral-500">Loading...</div>
+      </div>
+    );
+  }
+
   // Show password prompt if not authenticated
   if (!isAuthenticated) {
     return (
@@ -223,9 +232,10 @@ function Admin() {
     );
   }
 
+  // Show loading while fetching data after authentication
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-neutral-50">
         <div className="text-neutral-500">Loading...</div>
       </div>
     );
