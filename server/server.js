@@ -357,6 +357,18 @@ app.delete('/api/gallery/:id', async (req, res) => {
 });
 
 // ==========================================
+// SERVE FRONTEND (Production)
+// ==========================================
+
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../client/dist')));
+
+// Catch-all route to serve index.html for client-side routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
+// ==========================================
 // START SERVER
 // ==========================================
 
