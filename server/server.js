@@ -214,6 +214,66 @@ function getGoogleSheetsClient() {
   }
 }
 
+// Read all registrations from Google Sheet
+async function getRegistrationsFromSheet() {
+  if (!GOOGLE_SHEETS_ENABLED) {
+    console.log('Google Sheets integration is disabled, reading from local file');
+    return null;
+  }
+
+  const sheets = getGoogleSheetsClient();
+  if (!sheets) {
+    console.error('Google Sheets client not available');
+    return null;
+  }
+
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SHEET_ID,
+      range: 'Sheet1!A:I'
+    });
+
+    const rows = response.data.values || [];
+
+    // Skip header row if it exists, map data to expected format
+    // Columns: Name, Email, Phone, RelationshipType, ConnectedThrough, Generation, FamilyBranch, Attendees, CreatedAt
+    const registrations = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      // Skip header row (check if first cell looks like a header)
+      if (i === 0 && (row[0] === 'Name' || row[0] === 'name')) {
+        continue;
+      }
+
+      // Skip empty rows
+      if (!row[0]) continue;
+
+      registrations.push({
+        id: `sheet-${i}`, // Generate an ID based on row index
+        name: row[0] || '',
+        email: row[1] || '',
+        phone: row[2] || '',
+        relationshipType: row[3] || '',
+        connectedThrough: row[4] || '',
+        generation: parseInt(row[5]) || 0,
+        familyBranch: row[6] || '',
+        attendees: parseInt(row[7]) || 1,
+        createdAt: row[8] || new Date().toISOString()
+      });
+    }
+
+    console.log(`Google Sheets: Fetched ${registrations.length} registrations`);
+    return registrations;
+  } catch (error) {
+    console.error('Error reading from Google Sheet:', error.message);
+    if (error.response) {
+      console.error('Google Sheets API error details:', error.response.data);
+    }
+    return null;
+  }
+}
+
 // Append registration data to Google Sheet
 async function appendToGoogleSheet(memberData) {
   if (!GOOGLE_SHEETS_ENABLED) {
@@ -383,7 +443,12 @@ app.post('/api/admin/verify', (req, res) => {
 // Protected admin routes
 app.get('/api/admin/registrations', requireAdminPassword, async (req, res) => {
   try {
-    const familyData = await readFamilyData();
+    // Try to read from Google Sheets first, fall back to local file
+    let familyData = await getRegistrationsFromSheet();
+    if (familyData === null) {
+      console.log('Falling back to local family.json file');
+      familyData = await readFamilyData();
+    }
     res.json(familyData);
   } catch (error) {
     console.error('Error reading family data:', error);
@@ -397,7 +462,13 @@ app.get('/api/admin/registrations', requireAdminPassword, async (req, res) => {
 
 app.get('/api/admin/stats', requireAdminPassword, async (req, res) => {
   try {
-    const familyData = await readFamilyData();
+    // Try to read from Google Sheets first, fall back to local file
+    let familyData = await getRegistrationsFromSheet();
+    if (familyData === null) {
+      console.log('Falling back to local family.json file for stats');
+      familyData = await readFamilyData();
+    }
+
     const stats = {
       totalMembers: familyData.length,
       totalAttendees: familyData.reduce((sum, member) => sum + (member.attendees || 0), 0),
