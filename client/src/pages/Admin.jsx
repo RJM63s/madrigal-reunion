@@ -188,13 +188,12 @@ function Admin() {
     : familyData.filter(member => member.generation === parseInt(filter));
 
   const downloadCSV = () => {
-    const headers = ['Name', 'Email', 'Phone', 'Relationship', 'Connected Through', 'Generation', 'Branch', 'Attendees'];
+    const headers = ['Name', 'Email', 'Phone', 'Ancestor Sibling', 'Generation', 'Branch', 'Attendees'];
     const csvData = filteredData.map(member => [
       member.name,
       member.email,
       member.phone,
-      member.relationshipType,
-      member.connectedThrough,
+      member.ancestorSibling,
       member.generation,
       member.familyBranch,
       member.attendees
@@ -371,7 +370,7 @@ function Admin() {
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Photo</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Name</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider hidden md:table-cell">Contact</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider hidden lg:table-cell">Relationship</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider hidden lg:table-cell">Ancestor Sibling</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Generation</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider hidden xl:table-cell">Branch</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-neutral-600 uppercase tracking-wider">Attendees</th>
@@ -396,14 +395,14 @@ function Admin() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-neutral-900">{member.name}</div>
-                        <div className="text-xs text-neutral-500">via {member.connectedThrough}</div>
+                        <div className="text-xs text-neutral-500">via {member.ancestorSibling}</div>
                       </td>
                       <td className="px-6 py-4 hidden md:table-cell">
                         <div className="text-sm text-neutral-900">{member.email}</div>
                         <div className="text-xs text-neutral-500">{member.phone}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-900 hidden lg:table-cell">
-                        {member.relationshipType}
+                        {member.ancestorSibling}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">

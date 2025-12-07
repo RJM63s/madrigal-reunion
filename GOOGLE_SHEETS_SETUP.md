@@ -149,19 +149,14 @@ The app will automatically create the following columns in your sheet:
 
 | Column | Description |
 |--------|-------------|
-| Timestamp | Date and time of registration |
-| ID | Unique identifier |
-| First Name | First name of family member |
-| Last Name | Last name of family member |
+| Name | Full name of family member |
 | Email | Email address |
 | Phone | Phone number |
-| Relationship Type | Type of family relationship |
-| Connected To | Who they're connected through |
+| Ancestor Sibling | Which sibling was parent/grandparent or great grandparent |
 | Generation | Generation number (1-5) |
-| Branch Description | Family branch description |
-| Number of Attendees | Number of people attending |
-| Photo URL | Path to uploaded photo |
-| Notes | Additional notes |
+| Family Branch | Family branch description |
+| Attendees | Number of people attending |
+| Created At | Date and time of registration |
 
 ## Testing the Integration
 
@@ -287,19 +282,14 @@ async function migrate() {
     const lastName = lastNameParts.join(' ');
 
     await sheet.addRow({
-      'Timestamp': member.createdAt || new Date().toISOString(),
-      'ID': member.id,
-      'First Name': firstName,
-      'Last Name': lastName,
+      'Name': member.name,
       'Email': member.email,
       'Phone': member.phone,
-      'Relationship Type': member.relationshipType,
-      'Connected To': member.connectedThrough,
+      'Ancestor Sibling': member.ancestorSibling,
       'Generation': member.generation.toString(),
-      'Branch Description': member.familyBranch,
-      'Number of Attendees': (member.attendees || 0).toString(),
-      'Photo URL': member.photo || '',
-      'Notes': ''
+      'Family Branch': member.familyBranch,
+      'Attendees': (member.attendees || 0).toString(),
+      'Created At': member.createdAt || new Date().toISOString()
     });
 
     console.log(`Migrated: ${member.name}`);
