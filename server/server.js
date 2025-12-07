@@ -230,13 +230,13 @@ async function getRegistrationsFromSheet() {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A:I'
+      range: 'Sheet1!A:G'
     });
 
     const rows = response.data.values || [];
 
     // Skip header row if it exists, map data to expected format
-    // Columns: Name, Email, Phone, RelationshipType, ConnectedThrough, Generation, FamilyBranch, Attendees, CreatedAt
+    // Columns: Name, Email, Phone, AncestorSibling, Generation, FamilyBranch, Attendees, CreatedAt
     const registrations = [];
     let hasHeader = rows.length > 0 && (rows[0][0] === 'Name' || rows[0][0] === 'name');
 
@@ -260,12 +260,11 @@ async function getRegistrationsFromSheet() {
         name: row[0] || '',
         email: row[1] || '',
         phone: row[2] || '',
-        relationshipType: row[3] || '',
-        connectedThrough: row[4] || '',
-        generation: parseInt(row[5]) || 0,
-        familyBranch: row[6] || '',
-        attendees: parseInt(row[7]) || 1,
-        createdAt: row[8] || new Date().toISOString()
+        ancestorSibling: row[3] || '',
+        generation: parseInt(row[4]) || 0,
+        familyBranch: row[5] || '',
+        attendees: parseInt(row[6]) || 1,
+        createdAt: row[7] || new Date().toISOString()
       });
     }
 
@@ -298,8 +297,7 @@ async function appendToGoogleSheet(memberData) {
       memberData.name,
       memberData.email,
       memberData.phone,
-      memberData.relationshipType,
-      memberData.connectedThrough,
+      memberData.ancestorSibling,
       memberData.generation,
       memberData.familyBranch,
       memberData.attendees,
@@ -308,7 +306,7 @@ async function appendToGoogleSheet(memberData) {
 
     const request = {
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A:I', // Adjust sheet name if needed
+      range: 'Sheet1!A:H', // Adjust sheet name if needed
       valueInputOption: 'USER_ENTERED',
       insertDataOption: 'INSERT_ROWS',
       resource: {
@@ -351,8 +349,7 @@ app.post('/api/register', upload.single('photo'), async (req, res) => {
       name: sanitizeString(req.body.name, 100),
       email: email,
       phone: sanitizeString(req.body.phone, 20),
-      relationshipType: sanitizeString(req.body.relationshipType, 50),
-      connectedThrough: sanitizeString(req.body.connectedThrough, 100),
+      ancestorSibling: sanitizeString(req.body.ancestorSibling, 50),
       generation: parseInt(req.body.generation) || 0,
       familyBranch: sanitizeString(req.body.familyBranch, 100),
       photo: req.file ? `/uploads/${req.file.filename}` : null,

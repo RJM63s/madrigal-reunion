@@ -11,8 +11,7 @@ function Register() {
     name: '',
     email: '',
     phone: '',
-    relationshipType: '',
-    connectedThrough: '',
+    ancestorSibling: '',
     generation: '',
     familyBranch: '',
     attendees: '1'
@@ -179,37 +178,23 @@ function Register() {
             />
           </div>
 
-          {/* Relationship Type */}
+          {/* Ancestor Sibling */}
           <FloatingLabelSelect
-            label="Relationship Type"
-            name="relationshipType"
-            value={formData.relationshipType}
+            label="Which sibling was your parent/grandparent or great grandparent?"
+            name="ancestorSibling"
+            value={formData.ancestorSibling}
             onChange={handleInputChange}
             required
             options={[
               { value: '', label: '' },
-              { value: 'Immediate Family', label: 'Immediate Family' },
-              { value: 'Spouse', label: 'Spouse' },
-              { value: 'Child', label: 'Child' },
-              { value: 'Grandchild', label: 'Grandchild' },
-              { value: 'Sibling', label: 'Sibling' },
-              { value: 'Cousin', label: 'Cousin' },
-              { value: 'Aunt/Uncle', label: 'Aunt/Uncle' },
-              { value: 'Niece/Nephew', label: 'Niece/Nephew' },
-              { value: 'In-law', label: 'In-law' },
-              { value: 'Other', label: 'Other' }
+              { value: 'Arturo', label: 'Arturo' },
+              { value: 'Domingo', label: 'Domingo' },
+              { value: 'Ernesto', label: 'Ernesto' },
+              { value: 'Josefa', label: 'Josefa' },
+              { value: 'David', label: 'David' },
+              { value: 'Julia', label: 'Julia' },
+              { value: 'Francisco', label: 'Francisco' }
             ]}
-          />
-
-          {/* Connected Through */}
-          <FloatingLabelInput
-            label="Connected Through"
-            name="connectedThrough"
-            type="text"
-            value={formData.connectedThrough}
-            onChange={handleInputChange}
-            required
-            helper="e.g., Abuela Alma, Julieta Madrigal"
           />
 
           {/* Generation & Attendees */}

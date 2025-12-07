@@ -37,8 +37,7 @@ function FamilyTree() {
     const query = searchQuery.toLowerCase();
     return familyData.filter(member =>
       member.name.toLowerCase().includes(query) ||
-      member.relationshipType?.toLowerCase().includes(query) ||
-      member.connectedThrough?.toLowerCase().includes(query) ||
+      member.ancestorSibling?.toLowerCase().includes(query) ||
       member.familyBranch?.toLowerCase().includes(query)
     );
   }, [familyData, searchQuery]);
@@ -101,7 +100,7 @@ function FamilyTree() {
           {/* Search Bar */}
           <SearchBar
             onSearch={handleSearch}
-            placeholder="Search by name, relationship, or branch..."
+            placeholder="Search by name, ancestor sibling, or branch..."
           />
 
           {/* Search Results Indicator */}
@@ -232,10 +231,7 @@ function MemberCard({ member, onClick, style }) {
             {member.name}
           </h3>
           <p className="text-sm text-neutral-600 truncate">
-            {member.relationshipType}
-          </p>
-          <p className="text-xs text-neutral-500 truncate">
-            via {member.connectedThrough}
+            via {member.ancestorSibling}
           </p>
         </div>
 

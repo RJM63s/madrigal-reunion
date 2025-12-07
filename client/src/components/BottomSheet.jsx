@@ -98,8 +98,7 @@ function BottomSheet({ isOpen, onClose, member }) {
 
           {/* Details Grid */}
           <div className="space-y-1">
-            <DetailItem label="Relationship" value={member.relationshipType} />
-            <DetailItem label="Connected Through" value={member.connectedThrough} />
+            <DetailItem label="Ancestor Sibling" value={member.ancestorSibling} />
             <DetailItem label="Generation" value={`Generation ${member.generation}`} />
             <DetailItem label="Family Branch" value={member.familyBranch} />
             <DetailItem label="Attendees" value={member.attendees?.toString()} />
