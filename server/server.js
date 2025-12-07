@@ -45,6 +45,13 @@ function validateEmail(email) {
   return emailRegex.test(email);
 }
 
+// Valid ancestor siblings
+const VALID_SIBLINGS = ['Arturo', 'Domingo', 'Ernesto', 'Josefa', 'David', 'Julia', 'Francisco'];
+
+function validateAncestorSibling(value) {
+  return VALID_SIBLINGS.includes(value);
+}
+
 // Ensure directories exist
 async function ensureDirectories() {
   try {
@@ -230,7 +237,7 @@ async function getRegistrationsFromSheet() {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: GOOGLE_SHEET_ID,
-      range: 'Sheet1!A:G'
+      range: 'Sheet1!A:H'
     });
 
     const rows = response.data.values || [];
@@ -344,12 +351,21 @@ app.post('/api/register', upload.single('photo'), async (req, res) => {
       });
     }
 
+    // Validate ancestorSibling
+    const ancestorSibling = sanitizeString(req.body.ancestorSibling, 50);
+    if (!validateAncestorSibling(ancestorSibling)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid ancestor sibling selection'
+      });
+    }
+
     const newMember = {
       id: Date.now().toString(),
       name: sanitizeString(req.body.name, 100),
       email: email,
       phone: sanitizeString(req.body.phone, 20),
-      ancestorSibling: sanitizeString(req.body.ancestorSibling, 50),
+      ancestorSibling: ancestorSibling,
       generation: parseInt(req.body.generation) || 0,
       familyBranch: sanitizeString(req.body.familyBranch, 100),
       photo: req.file ? `/uploads/${req.file.filename}` : null,
