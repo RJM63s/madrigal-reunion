@@ -63,7 +63,7 @@ function Register() {
 
       const result = await response.json();
 
-      if (result.success) {
+      if (response.ok && result.success) {
         setMessage({ type: 'success', text: 'Welcome to the family! Redirecting...' });
         setShowConfetti(true);
         setTimeout(() => {
@@ -179,23 +179,27 @@ function Register() {
           </div>
 
           {/* Ancestor Sibling */}
-          <FloatingLabelSelect
-            label="Which sibling was your parent/grandparent or great grandparent?"
-            name="ancestorSibling"
-            value={formData.ancestorSibling}
-            onChange={handleInputChange}
-            required
-            options={[
-              { value: '', label: '' },
-              { value: 'Arturo', label: 'Arturo' },
-              { value: 'Domingo', label: 'Domingo' },
-              { value: 'Ernesto', label: 'Ernesto' },
-              { value: 'Josefa', label: 'Josefa' },
-              { value: 'David', label: 'David' },
-              { value: 'Julia', label: 'Julia' },
-              { value: 'Francisco', label: 'Francisco' }
-            ]}
-          />
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Which sibling was your parent/grandparent or great grandparent?
+            </label>
+            <select
+              name="ancestorSibling"
+              value={formData.ancestorSibling}
+              onChange={handleInputChange}
+              required
+              className="w-full px-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-100 transition-all"
+            >
+              <option value="">Select a sibling</option>
+              <option value="Arturo">Arturo</option>
+              <option value="Domingo">Domingo</option>
+              <option value="Ernesto">Ernesto</option>
+              <option value="Josefa">Josefa</option>
+              <option value="David">David</option>
+              <option value="Julia">Julia</option>
+              <option value="Francisco">Francisco</option>
+            </select>
+          </div>
 
           {/* Generation & Attendees */}
           <div className="grid md:grid-cols-2 gap-6 mb-6">
