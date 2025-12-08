@@ -17,7 +17,7 @@ function Home() {
 
   useEffect(() => {
     // Generate QR code
-    const registrationUrl = window.location.origin + '/register';
+    const registrationUrl = 'https://madrigal-family-reunion.onrender.com/register';
     if (canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, registrationUrl, {
         width: 200,
