@@ -31,13 +31,25 @@ function Home() {
 
     // Fetch stats
     fetch(`${API_URL}/api/stats`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          return res.json().catch(() => ({ message: 'Server error occurred' }))
+            .then(result => {
+              console.error('Error fetching stats:', result.message);
+              setLoading(false);
+              return null;
+            });
+        }
+        return res.json();
+      })
       .then(data => {
-        setStats(data);
+        if (data) {
+          setStats(data);
+        }
         setLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching stats:', err);
+        console.error('Network error fetching stats:', err);
         setLoading(false);
       });
   }, []);

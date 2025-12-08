@@ -177,11 +177,18 @@ function Admin() {
       console.log('Registrations response status:', familyRes.status);
       console.log('Stats response status:', statsRes.status);
 
-      if (!familyRes.ok || !statsRes.ok) {
-        const familyError = !familyRes.ok ? await familyRes.text() : null;
-        const statsError = !statsRes.ok ? await statsRes.text() : null;
-        console.error('Response errors:', { familyError, statsError });
-        throw new Error('Failed to fetch data');
+      if (!familyRes.ok) {
+        const result = await familyRes.json().catch(() => ({ message: 'Server error occurred' }));
+        console.error('Registrations error:', result.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!statsRes.ok) {
+        const result = await statsRes.json().catch(() => ({ message: 'Server error occurred' }));
+        console.error('Stats error:', result.message);
+        setLoading(false);
+        return;
       }
 
       const familyData = await familyRes.json();
