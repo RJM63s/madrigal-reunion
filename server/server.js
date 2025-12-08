@@ -18,13 +18,13 @@ const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
 
 // Middleware - CORS configuration
-const corsOptions = {
-  origin: NODE_ENV === 'production'
-    ? [CLIENT_URL] // Only allow specific origin in production
-    : '*', // Allow all origins in development
+app.use(cors({
+  origin: [
+    'https://madrigal-family-reunion.onrender.com',
+    'http://localhost:5173' // for local development
+  ],
   credentials: true
-};
-app.use(cors(corsOptions));
+}));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 app.use('/gallery', express.static('gallery'));
