@@ -61,9 +61,16 @@ function Register() {
         body: formDataToSend
       });
 
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        setMessage({ type: 'error', text: result.message || 'Registration failed. Please try again.' });
+        setLoading(false);
+        return;
+      }
+
       const result = await response.json();
 
-      if (response.ok && result.success) {
+      if (result.success) {
         setMessage({ type: 'success', text: 'Welcome to the family! Redirecting...' });
         setShowConfetti(true);
         setTimeout(() => {

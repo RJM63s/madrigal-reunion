@@ -41,6 +41,15 @@ function Admin() {
         body: JSON.stringify({ password: pwd })
       });
 
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        setPasswordError(result.message || 'Error verifying password');
+        sessionStorage.removeItem('adminPassword');
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
       const result = await response.json();
 
       if (result.success) {
@@ -54,7 +63,7 @@ function Admin() {
         setLoading(false);
       }
     } catch (error) {
-      setPasswordError('Error verifying password');
+      setPasswordError('Network error. Please check your connection and try again.');
       setLoading(false);
     } finally {
       setIsVerifying(false);
@@ -113,6 +122,13 @@ function Admin() {
       });
 
       console.log('Delete response status:', response.status);
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        showNotification(result.message || 'Failed to delete registration', 'error');
+        return;
+      }
+
       const result = await response.json();
       console.log('Delete response:', result);
 
@@ -129,7 +145,7 @@ function Admin() {
       }
     } catch (error) {
       console.error('Delete error:', error);
-      showNotification('Error deleting registration', 'error');
+      showNotification('Network error. Please check your connection and try again.', 'error');
     } finally {
       setIsDeleting(false);
       setDeleteConfirm(null);
@@ -161,11 +177,24 @@ function Admin() {
       console.log('Registrations response status:', familyRes.status);
       console.log('Stats response status:', statsRes.status);
 
-      if (!familyRes.ok || !statsRes.ok) {
-        const familyError = !familyRes.ok ? await familyRes.text() : null;
-        const statsError = !statsRes.ok ? await statsRes.text() : null;
-        console.error('Response errors:', { familyError, statsError });
-        throw new Error('Failed to fetch data');
+      if (!familyRes.ok) {
+        const result = await familyRes.json().catch(() => ({ message: 'Server error occurred' }));
+        console.error('Registrations error:', result.message);
+        showNotification(result.message || 'Failed to load registrations', 'error');
+        setFamilyData([]);
+        setStats(null);
+        setLoading(false);
+        return;
+      }
+
+      if (!statsRes.ok) {
+        const result = await statsRes.json().catch(() => ({ message: 'Server error occurred' }));
+        console.error('Stats error:', result.message);
+        showNotification(result.message || 'Failed to load statistics', 'error');
+        setFamilyData([]);
+        setStats(null);
+        setLoading(false);
+        return;
       }
 
       const familyData = await familyRes.json();
@@ -179,6 +208,9 @@ function Admin() {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
+      showNotification('Network error. Please check your connection and try again.', 'error');
+      setFamilyData([]);
+      setStats(null);
       setLoading(false);
     }
   };

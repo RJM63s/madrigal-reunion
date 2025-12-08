@@ -14,17 +14,28 @@ function FamilyTree() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch(`${API_URL}/api/family`)
-      .then(res => res.json())
-      .then(data => {
+    const fetchFamilyData = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/family`);
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+          console.error('Error fetching family data:', result.message);
+          setLoading(false);
+          return;
+        }
+
+        const data = await response.json();
         const sorted = data.sort((a, b) => a.generation - b.generation);
         setFamilyData(sorted);
         setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching family data:', err);
+      } catch (err) {
+        console.error('Network error fetching family data:', err);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchFamilyData();
   }, []);
 
   const handleSearch = useCallback((query) => {
