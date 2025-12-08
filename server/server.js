@@ -742,20 +742,24 @@ app.delete('/api/gallery/:id', async (req, res) => {
 // START SERVER
 // ==========================================
 
+// Initialize directories and data files on startup
 Promise.all([
   ensureDirectories(),
   initializeDataFile(),
   initializeGalleryFile()
-]).then(() => {
-  // Serve static files from React build
-  app.use(express.static(path.join(__dirname, '../client/dist')));
+]).catch(error => {
+  console.error('Initialization error:', error);
+});
 
-  // Handle client-side routing - this must be LAST, after all API routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  });
+// Serve static files from React build
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+// Catch-all route for client-side routing - must be LAST
+app.get('*', (req, res) => {
+  console.log('Catch-all route hit:', req.path);
+  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
