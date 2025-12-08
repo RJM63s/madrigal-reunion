@@ -64,6 +64,7 @@ function Register() {
       if (!response.ok) {
         const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
         setMessage({ type: 'error', text: result.message || 'Registration failed. Please try again.' });
+        setLoading(false);
         return;
       }
 
