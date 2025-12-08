@@ -58,6 +58,7 @@ function Gallery() {
       if (!response.ok) {
         const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
         setMessage({ type: 'error', text: result.message || 'Upload failed. Please try again.' });
+        setUploading(false);
         return;
       }
 

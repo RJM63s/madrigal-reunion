@@ -30,28 +30,27 @@ function Home() {
     }
 
     // Fetch stats
-    fetch(`${API_URL}/api/stats`)
-      .then(res => {
-        if (!res.ok) {
-          return res.json().catch(() => ({ message: 'Server error occurred' }))
-            .then(result => {
-              console.error('Error fetching stats:', result.message);
-              setLoading(false);
-              return null;
-            });
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/stats`);
+
+        if (!response.ok) {
+          const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+          console.error('Error fetching stats:', result.message);
+          setLoading(false);
+          return;
         }
-        return res.json();
-      })
-      .then(data => {
-        if (data) {
-          setStats(data);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
+
+        const data = await response.json();
+        setStats(data);
+      } catch (err) {
         console.error('Network error fetching stats:', err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchStats();
   }, []);
 
   return (
