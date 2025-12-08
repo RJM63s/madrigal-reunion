@@ -181,6 +181,8 @@ function Admin() {
         const result = await familyRes.json().catch(() => ({ message: 'Server error occurred' }));
         console.error('Registrations error:', result.message);
         showNotification(result.message || 'Failed to load registrations', 'error');
+        setFamilyData([]);
+        setStats(null);
         setLoading(false);
         return;
       }
@@ -189,6 +191,8 @@ function Admin() {
         const result = await statsRes.json().catch(() => ({ message: 'Server error occurred' }));
         console.error('Stats error:', result.message);
         showNotification(result.message || 'Failed to load statistics', 'error');
+        setFamilyData([]);
+        setStats(null);
         setLoading(false);
         return;
       }
@@ -204,6 +208,9 @@ function Admin() {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
+      showNotification('Network error. Please check your connection and try again.', 'error');
+      setFamilyData([]);
+      setStats(null);
       setLoading(false);
     }
   };
