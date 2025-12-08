@@ -16,11 +16,19 @@ function Gallery() {
   const fetchPhotos = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/api/gallery`);
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        setMessage({ type: 'error', text: result.message || 'Unable to load photos. Please try again.' });
+        setLoading(false);
+        return;
+      }
+
       const data = await response.json();
       setPhotos(data);
     } catch (error) {
       console.error('Error fetching photos:', error);
-      setMessage({ type: 'error', text: 'Unable to load photos. Please try again.' });
+      setMessage({ type: 'error', text: 'Network error. Please check your connection and try again.' });
     } finally {
       setLoading(false);
     }
@@ -46,6 +54,12 @@ function Gallery() {
         method: 'POST',
         body: formData
       });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        setMessage({ type: 'error', text: result.message || 'Upload failed. Please try again.' });
+        return;
+      }
 
       const result = await response.json();
 

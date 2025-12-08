@@ -41,6 +41,15 @@ function Admin() {
         body: JSON.stringify({ password: pwd })
       });
 
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        setPasswordError(result.message || 'Error verifying password');
+        sessionStorage.removeItem('adminPassword');
+        setIsAuthenticated(false);
+        setLoading(false);
+        return;
+      }
+
       const result = await response.json();
 
       if (result.success) {
@@ -54,7 +63,7 @@ function Admin() {
         setLoading(false);
       }
     } catch (error) {
-      setPasswordError('Error verifying password');
+      setPasswordError('Network error. Please check your connection and try again.');
       setLoading(false);
     } finally {
       setIsVerifying(false);
@@ -113,6 +122,13 @@ function Admin() {
       });
 
       console.log('Delete response status:', response.status);
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({ message: 'Server error occurred' }));
+        showNotification(result.message || 'Failed to delete registration', 'error');
+        return;
+      }
+
       const result = await response.json();
       console.log('Delete response:', result);
 
@@ -129,7 +145,7 @@ function Admin() {
       }
     } catch (error) {
       console.error('Delete error:', error);
-      showNotification('Error deleting registration', 'error');
+      showNotification('Network error. Please check your connection and try again.', 'error');
     } finally {
       setIsDeleting(false);
       setDeleteConfirm(null);
