@@ -180,6 +180,7 @@ function Admin() {
       if (!familyRes.ok) {
         const result = await familyRes.json().catch(() => ({ message: 'Server error occurred' }));
         console.error('Registrations error:', result.message);
+        showNotification(result.message || 'Failed to load registrations', 'error');
         setLoading(false);
         return;
       }
@@ -187,6 +188,7 @@ function Admin() {
       if (!statsRes.ok) {
         const result = await statsRes.json().catch(() => ({ message: 'Server error occurred' }));
         console.error('Stats error:', result.message);
+        showNotification(result.message || 'Failed to load statistics', 'error');
         setLoading(false);
         return;
       }
