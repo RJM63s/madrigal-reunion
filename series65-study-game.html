@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Series 65 Quiz Challenge</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --bg2: #1e293b;
+    --card: #1e293b;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --good: #22c55e;
+    --bad: #ef4444;
+    --warn: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 50% -10%, #1e3a5f 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .app { width: 100%; max-width: 720px; }
+  .title {
+    text-align: center;
+    margin-bottom: 4px;
+    font-size: clamp(28px, 6vw, 42px);
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { text-align: center; color: var(--muted); margin-bottom: 24px; font-size: 14px; }
+  .card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+  h2 { font-size: 20px; margin-bottom: 14px; }
+  p.lead { color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all .15s ease;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #0b1220; border-color: transparent; font-weight: 700; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .08s ease, filter .15s ease;
+    color: #0b1220;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: translateY(1px); }
+  .btn.secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--border); }
+  .btn.block { width: 100%; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* HUD */
+  .hud { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .stat { font-size: 13px; color: var(--muted); }
+  .stat b { color: var(--text); font-size: 16px; }
+  .lives { letter-spacing: 2px; font-size: 16px; }
+  .progress-wrap { height: 8px; background: var(--bg2); border-radius: 999px; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .3s ease; }
+  .timer-wrap { height: 6px; background: var(--bg2); border-radius: 999px; overflow: hidden; margin-bottom: 18px; }
+  .timer-bar { height: 100%; width: 100%; background: var(--good); transition: width 1s linear, background .3s; }
+
+  .cat-tag { display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); background: rgba(56,189,248,.12); padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; font-weight: 700; }
+  .question { font-size: 19px; line-height: 1.5; margin-bottom: 18px; font-weight: 600; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    text-align: left;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text);
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1.4;
+    transition: all .12s ease;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); transform: translateX(2px); }
+  .opt .letter { font-weight: 800; color: var(--accent); flex-shrink: 0; }
+  .opt:disabled { cursor: default; }
+  .opt.correct { background: rgba(34,197,94,.15); border-color: var(--good); }
+  .opt.correct .letter { color: var(--good); }
+  .opt.wrong { background: rgba(239,68,68,.15); border-color: var(--bad); }
+  .opt.wrong .letter { color: var(--bad); }
+
+  .feedback { margin-top: 18px; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg2); display: none; }
+  .feedback.show { display: block; animation: fade .25s ease; }
+  .feedback .verdict { font-weight: 800; font-size: 16px; margin-bottom: 8px; }
+  .feedback .verdict.right { color: var(--good); }
+  .feedback .verdict.wrong { color: var(--bad); }
+  .feedback .explain { color: var(--text); line-height: 1.55; font-size: 14px; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* Results */
+  .score-big { text-align: center; font-size: 64px; font-weight: 800; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .score-sub { text-align: center; color: var(--muted); margin-bottom: 18px; }
+  .grade { text-align: center; font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+  .breakdown { margin: 16px 0; }
+  .breakdown .brow { display: flex; justify-content: space-between; font-size: 14px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .breakdown .brow span:last-child { color: var(--muted); }
+  .review-item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 10px; background: var(--bg2); }
+  .review-item .rq { font-weight: 600; margin-bottom: 8px; line-height: 1.4; }
+  .review-item .ra { font-size: 13px; line-height: 1.5; }
+  .review-item .ra .yours { color: var(--bad); }
+  .review-item .ra .right { color: var(--good); }
+  .hidden { display: none !important; }
+  .footnote { text-align: center; color: var(--muted); font-size: 12px; margin-top: 18px; line-height: 1.5; }
+  .best-badge { text-align:center; color: var(--warn); font-weight:700; font-size:13px; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1 class="title">Series 65 Quiz Challenge</h1>
+  <p class="subtitle">Uniform Investment Adviser Law Exam &mdash; study smarter, not harder</p>
+
+  <!-- START SCREEN -->
+  <div id="start" class="card">
+    <h2>Ready to study?</h2>
+    <p class="lead">Pick your topics and length, then test yourself. You get instant explanations on every question, keep a streak going, and have 3 lives. Beat your high score!</p>
+
+    <div class="field">
+      <label>Topics</label>
+      <div class="chips" id="catChips"></div>
+    </div>
+
+    <div class="field">
+      <label>Number of questions</label>
+      <div class="chips" id="countChips"></div>
+    </div>
+
+    <div class="field">
+      <label>Timer per question</label>
+      <div class="chips" id="timerChips"></div>
+    </div>
+
+    <button class="btn block" id="startBtn">Start Quiz</button>
+    <div class="best-badge" id="bestBadge"></div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="quiz" class="card hidden">
+    <div class="hud">
+      <div class="stat">Question <b id="qNum">1</b>/<span id="qTotal">10</span></div>
+      <div class="stat">Score <b id="score">0</b></div>
+      <div class="stat">Streak <b id="streak">0</b>🔥</div>
+      <div class="stat lives" id="lives">❤️❤️❤️</div>
+    </div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="timer-wrap" id="timerWrap"><div class="timer-bar" id="timerBar"></div></div>
+
+    <span class="cat-tag" id="catTag">Topic</span>
+    <div class="question" id="questionText">Question goes here</div>
+    <div class="options" id="options"></div>
+
+    <div class="feedback" id="feedback">
+      <div class="verdict" id="verdict"></div>
+      <div class="explain" id="explain"></div>
+    </div>
+
+    <div class="row" style="margin-top:18px;">
+      <button class="btn block hidden" id="nextBtn">Next →</button>
+    </div>
+  </div>
+
+  <!-- RESULTS SCREEN -->
+  <div id="results" class="card hidden">
+    <h2 style="text-align:center;">Quiz Complete!</h2>
+    <div class="score-big" id="finalScore">0%</div>
+    <div class="score-sub" id="finalSub">0 of 0 correct</div>
+    <div class="grade" id="gradeText"></div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div id="reviewSection">
+      <h2 style="margin-top:24px;">Review missed questions</h2>
+      <div id="reviewList"></div>
+    </div>
+
+    <div class="row" style="margin-top:20px;">
+      <button class="btn" style="flex:1;" id="againBtn">Play Again</button>
+      <button class="btn secondary" style="flex:1;" id="homeBtn">Change Settings</button>
+    </div>
+  </div>
+
+  <p class="footnote">Study tool for educational use. Question bank covers the four NASAA Series 65 content areas. Always verify against current NASAA materials.</p>
+</div>
+
+<script>
+/* =========================================================================
+   SERIES 65 QUESTION BANK
+   Categories map to the four NASAA content outline areas.
+   ========================================================================= */
+const CATEGORIES = {
+  ECON: "Economic Factors",
+  VEHICLES: "Investment Vehicles",
+  STRATEGY: "Recommendations & Strategy",
+  LAW: "Laws & Ethics"
+};
+
+const QUESTIONS = [
+  // ---------------- ECONOMIC FACTORS ----------------
+  {
+    cat: "ECON",
+    q: "Which tool of the Federal Reserve is used most frequently to influence the money supply?",
+    options: ["Changing the reserve requirement", "Open market operations", "Changing the discount rate", "Adjusting margin requirements"],
+    answer: 1,
+    explain: "Open market operations — the buying and selling of government securities — is the Fed's most frequently used and flexible tool. Buying securities adds money to the system; selling drains it."
+  },
+  {
+    cat: "ECON",
+    q: "An economy experiencing two consecutive quarters of declining GDP is best described as being in a:",
+    options: ["Depression", "Recession", "Period of stagflation", "Trough"],
+    answer: 1,
+    explain: "A recession is commonly defined as two or more consecutive quarters of declining real GDP. A depression is a prolonged, severe recession; stagflation is high inflation plus stagnant growth."
+  },
+  {
+    cat: "ECON",
+    q: "Stagflation is characterized by:",
+    options: ["Falling prices and rising employment", "High inflation combined with high unemployment and slow growth", "Rapid GDP growth with low inflation", "Deflation with full employment"],
+    answer: 1,
+    explain: "Stagflation is the unusual combination of stagnant economic growth, high unemployment, and high inflation simultaneously."
+  },
+  {
+    cat: "ECON",
+    q: "Fiscal policy is controlled by:",
+    options: ["The Federal Reserve Board", "Congress and the President (taxation and spending)", "The SEC", "Commercial banks"],
+    answer: 1,
+    explain: "Fiscal policy — government taxation and spending decisions — is set by Congress and the President. Monetary policy (money supply, interest rates) is the Federal Reserve's domain."
+  },
+  {
+    cat: "ECON",
+    q: "A normal (positive) yield curve indicates that:",
+    options: ["Short-term rates are higher than long-term rates", "Long-term rates are higher than short-term rates", "All maturities have the same yield", "Rates are expected to fall sharply"],
+    answer: 1,
+    explain: "A normal yield curve slopes upward, meaning longer maturities offer higher yields to compensate investors for greater time risk. An inverted curve (short rates higher) often signals a coming recession."
+  },
+  {
+    cat: "ECON",
+    q: "The Consumer Price Index (CPI) is primarily used to measure:",
+    options: ["Corporate profitability", "Inflation at the consumer level", "Gross domestic product", "Unemployment"],
+    answer: 1,
+    explain: "The CPI tracks changes in the prices of a basket of consumer goods and services and is the most-watched gauge of consumer-level inflation."
+  },
+  {
+    cat: "ECON",
+    q: "Which economic indicator is considered a LEADING indicator?",
+    options: ["Corporate profits", "Average duration of unemployment", "Stock market (S&P 500) prices", "GDP"],
+    answer: 2,
+    explain: "Stock prices are a leading indicator — markets tend to move ahead of the broader economy. GDP and corporate profits are coincident/lagging; duration of unemployment is a lagging indicator."
+  },
+  {
+    cat: "ECON",
+    q: "If the Federal Reserve wants to tighten the money supply to fight inflation, it would most likely:",
+    options: ["Buy securities in the open market", "Lower the discount rate", "Sell securities in the open market", "Reduce the reserve requirement"],
+    answer: 2,
+    explain: "Selling securities removes money from the banking system, tightening the money supply and tending to raise interest rates — an anti-inflationary move."
+  },
+
+  // ---------------- INVESTMENT VEHICLES ----------------
+  {
+    cat: "VEHICLES",
+    q: "Which feature is common to preferred stock but NOT common stock?",
+    options: ["Voting rights", "A stated fixed dividend rate", "Unlimited upside potential", "Last claim on assets in liquidation"],
+    answer: 1,
+    explain: "Preferred stock carries a fixed, stated dividend and has priority over common in dividends and liquidation. It typically does NOT carry voting rights, which common stock does."
+  },
+  {
+    cat: "VEHICLES",
+    q: "As interest rates rise, the price of an existing bond will generally:",
+    options: ["Rise", "Fall", "Stay the same", "Move in the same direction as rates"],
+    answer: 1,
+    explain: "Bond prices move inversely to interest rates. When rates rise, existing bonds paying lower coupons become less attractive, so their prices fall."
+  },
+  {
+    cat: "VEHICLES",
+    q: "Duration measures a bond's:",
+    options: ["Credit quality", "Sensitivity to changes in interest rates", "Time to maturity in calendar days", "Coupon payment frequency"],
+    answer: 1,
+    explain: "Duration measures the sensitivity of a bond's price to interest-rate changes. Longer duration means greater price volatility when rates move."
+  },
+  {
+    cat: "VEHICLES",
+    q: "Which of the following trades on an exchange throughout the day at market-determined prices and can be bought on margin or sold short?",
+    options: ["Open-end mutual fund", "ETF (exchange-traded fund)", "Unit investment trust held to maturity", "Fixed annuity"],
+    answer: 1,
+    explain: "ETFs trade intraday on exchanges at market prices like stocks, and can be margined or shorted. Open-end mutual funds price once per day at NAV (forward pricing)."
+  },
+  {
+    cat: "VEHICLES",
+    q: "Open-end mutual fund shares are purchased and redeemed at:",
+    options: ["The previous day's closing price", "A negotiated price", "The next computed net asset value (forward pricing)", "A fixed par value"],
+    answer: 2,
+    explain: "Mutual funds use forward pricing: orders are filled at the next NAV calculated after the order is received, typically at the close of the trading day."
+  },
+  {
+    cat: "VEHICLES",
+    q: "The owner of a call option has the right to:",
+    options: ["Sell the underlying at the strike price", "Buy the underlying at the strike price", "Collect dividends on the underlying", "Force the writer to buy stock"],
+    answer: 1,
+    explain: "A call gives the holder the right (not obligation) to BUY the underlying at the strike price. A put gives the right to sell."
+  },
+  {
+    cat: "VEHICLES",
+    q: "A key risk of a FIXED annuity that a VARIABLE annuity is designed to address is:",
+    options: ["Credit risk of the insurer", "Purchasing power (inflation) risk", "Mortality risk", "Liquidity during the accumulation phase"],
+    answer: 1,
+    explain: "Fixed annuities pay a guaranteed dollar amount, exposing the holder to purchasing-power (inflation) risk. Variable annuities invest in subaccounts so payments can grow, helping hedge inflation — but adding investment risk."
+  },
+  {
+    cat: "VEHICLES",
+    q: "Which security typically has the HIGHEST priority claim on a corporation's assets in liquidation?",
+    options: ["Common stock", "Preferred stock", "Secured bonds", "Subordinated debentures"],
+    answer: 2,
+    explain: "Secured creditors (e.g., mortgage/secured bondholders) are paid first, followed by general creditors, then subordinated debt, preferred stock, and finally common stock."
+  },
+  {
+    cat: "VEHICLES",
+    q: "A 529 plan is primarily used to save for:",
+    options: ["Retirement", "Qualified education expenses", "Medical expenses", "A first home purchase"],
+    answer: 1,
+    explain: "A 529 plan is a tax-advantaged account for qualified education expenses. Earnings grow tax-deferred and qualified withdrawals are federally tax-free."
+  },
+  {
+    cat: "VEHICLES",
+    q: "Interest from a municipal bond is generally:",
+    options: ["Taxable at the federal level", "Exempt from federal income tax", "Subject to a flat 28% federal rate", "Tax-deferred until maturity"],
+    answer: 1,
+    explain: "Municipal bond interest is generally exempt from federal income tax (and often state tax for in-state residents), which is why munis appeal to higher-tax-bracket investors."
+  },
+
+  // ---------------- RECOMMENDATIONS & STRATEGY ----------------
+  {
+    cat: "STRATEGY",
+    q: "Beta measures a security's:",
+    options: ["Total risk", "Unsystematic (diversifiable) risk", "Volatility relative to the overall market (systematic risk)", "Expected dividend yield"],
+    answer: 2,
+    explain: "Beta measures systematic (market) risk — how much a security moves relative to the market. A beta of 1.0 moves with the market; above 1.0 is more volatile."
+  },
+  {
+    cat: "STRATEGY",
+    q: "Diversification across many securities is most effective at reducing:",
+    options: ["Systematic risk", "Market risk", "Unsystematic (company-specific) risk", "Interest rate risk"],
+    answer: 2,
+    explain: "Diversification reduces unsystematic (company- or industry-specific) risk. Systematic/market risk cannot be diversified away because it affects the whole market."
+  },
+  {
+    cat: "STRATEGY",
+    q: "The Sharpe ratio measures:",
+    options: ["Return per unit of total risk (risk-adjusted return)", "A portfolio's correlation to the S&P 500", "The portfolio's turnover rate", "Return above a benchmark only"],
+    answer: 0,
+    explain: "The Sharpe ratio = (portfolio return − risk-free rate) ÷ standard deviation. It expresses excess return earned per unit of total risk (volatility)."
+  },
+  {
+    cat: "STRATEGY",
+    q: "Alpha represents:",
+    options: ["A portfolio's sensitivity to the market", "The risk-free rate of return", "Return above or below what beta would predict", "The standard deviation of returns"],
+    answer: 2,
+    explain: "Alpha is the excess (or deficit) return relative to what the security's beta (market risk) would predict. Positive alpha indicates outperformance on a risk-adjusted basis."
+  },
+  {
+    cat: "STRATEGY",
+    q: "Dollar-cost averaging involves:",
+    options: ["Buying a fixed number of shares each period", "Investing a fixed dollar amount at regular intervals", "Timing the market to buy only at lows", "Selling losers and holding winners"],
+    answer: 1,
+    explain: "Dollar-cost averaging invests a fixed dollar amount at regular intervals, buying more shares when prices are low and fewer when high, lowering the average cost per share over time."
+  },
+  {
+    cat: "STRATEGY",
+    q: "Which client would generally be MOST suitable for a portfolio emphasizing growth equities?",
+    options: ["A 70-year-old needing current income", "A 28-year-old with a long time horizon and high risk tolerance", "A client saving for a down payment in 6 months", "A retiree prioritizing capital preservation"],
+    answer: 1,
+    explain: "A young investor with a long time horizon and high risk tolerance can ride out volatility and benefit from the higher long-term growth potential of equities."
+  },
+  {
+    cat: "STRATEGY",
+    q: "Strategic asset allocation differs from tactical asset allocation in that strategic allocation:",
+    options: ["Frequently shifts holdings to exploit short-term opportunities", "Sets long-term target weights and rebalances back to them", "Avoids diversification", "Relies only on market timing"],
+    answer: 1,
+    explain: "Strategic allocation sets long-term target weights and periodically rebalances to them. Tactical allocation makes shorter-term deviations to take advantage of market opportunities."
+  },
+  {
+    cat: "STRATEGY",
+    q: "Distributions from a traditional IRA taken before age 59½ are generally subject to:",
+    options: ["No tax or penalty", "Ordinary income tax plus a 10% early withdrawal penalty", "Capital gains tax only", "A 6% excess contribution penalty"],
+    answer: 1,
+    explain: "Early traditional IRA withdrawals are taxed as ordinary income and hit with a 10% penalty (absent an exception). Roth contributions can be withdrawn tax/penalty-free, but earnings rules differ."
+  },
+  {
+    cat: "STRATEGY",
+    q: "A key advantage of a Roth IRA over a traditional IRA is that:",
+    options: ["Contributions are always tax-deductible", "Qualified withdrawals are tax-free", "There are no income limits to contribute", "It requires minimum distributions at 73"],
+    answer: 1,
+    explain: "Roth IRA contributions are made with after-tax dollars, but qualified withdrawals (including earnings) are tax-free. Roth IRAs also have no lifetime RMDs for the original owner."
+  },
+
+  // ---------------- LAWS & ETHICS ----------------
+  {
+    cat: "LAW",
+    q: "Under the Uniform Securities Act, a person who gives investment advice about securities for compensation is generally a(n):",
+    options: ["Broker-dealer", "Investment adviser", "Agent", "Issuer"],
+    answer: 1,
+    explain: "The 'three-prong' test: providing ADVICE about SECURITIES, as a BUSINESS, for COMPENSATION makes a person an investment adviser. Broker-dealers effect transactions; agents represent BDs or issuers."
+  },
+  {
+    cat: "LAW",
+    q: "Generally, an investment adviser with assets under management of $110 million or more must register with:",
+    options: ["The state administrator only", "The SEC (federal registration)", "FINRA", "Both the SEC and every state"],
+    answer: 1,
+    explain: "Advisers with $110M+ AUM are federal covered advisers registering with the SEC. Those under $100M generally register with the state(s). The $100M–$110M range is a buffer zone."
+  },
+  {
+    cat: "LAW",
+    q: "An investment adviser representative is required to deliver the firm's brochure (Form ADV Part 2) to a client:",
+    options: ["Only upon client request", "At or before entering into the advisory contract", "Within 90 days after the contract", "Only at annual renewal"],
+    answer: 1,
+    explain: "The brochure rule requires delivery of Form ADV Part 2 at or before entering into the advisory agreement, plus an annual offer/delivery of updates to clients."
+  },
+  {
+    cat: "LAW",
+    q: "An investment adviser owes its clients a:",
+    options: ["Suitability obligation only", "Fiduciary duty to act in the client's best interest", "Duty limited to disclosed conflicts", "Caveat emptor relationship"],
+    answer: 1,
+    explain: "Investment advisers are fiduciaries and must act in their clients' best interests, placing client interests ahead of their own and fully disclosing conflicts of interest."
+  },
+  {
+    cat: "LAW",
+    q: "Which of the following is a PROHIBITED practice for an investment adviser?",
+    options: ["Charging an asset-based fee", "Borrowing money from a client who is not a lending institution", "Disclosing conflicts of interest", "Providing a fee schedule"],
+    answer: 1,
+    explain: "Borrowing from or lending to a client (unless the client is a broker-dealer or financial institution in that business) is a prohibited, unethical practice that breaches fiduciary duty."
+  },
+  {
+    cat: "LAW",
+    q: "An IAR tells a client a security is 'guaranteed to double in a year.' This is an example of:",
+    options: ["Acceptable forward-looking guidance", "A prohibited guarantee against loss / misleading statement", "A suitable recommendation", "Permissible if put in writing"],
+    answer: 1,
+    explain: "Guaranteeing performance or against loss is a prohibited practice. Advisers may not promise specific results; such statements are misleading and unethical."
+  },
+  {
+    cat: "LAW",
+    q: "Under the Uniform Securities Act, the term 'person' does NOT include:",
+    options: ["A corporation", "A deceased individual / minor / incompetent", "A partnership", "A government agency"],
+    answer: 1,
+    explain: "'Person' is broadly defined to include individuals, corporations, partnerships, associations, and governments — but specifically excludes a deceased individual, a minor, and a person declared mentally incompetent."
+  },
+  {
+    cat: "LAW",
+    q: "If an investment adviser has custody of client funds or securities, it generally must:",
+    options: ["Commingle client funds with firm funds for efficiency", "Arrange for an annual surprise examination by an independent accountant", "Avoid sending account statements", "Hold the assets indefinitely without disclosure"],
+    answer: 1,
+    explain: "Custody triggers safeguards: use of a qualified custodian, account statements to clients, and typically an annual surprise examination by an independent public accountant to verify client assets."
+  },
+  {
+    cat: "LAW",
+    q: "The Investment Advisers Act of 1940 is administered primarily by:",
+    options: ["FINRA", "The SEC", "State banking commissions", "The Federal Reserve"],
+    answer: 1,
+    explain: "The Investment Advisers Act of 1940 is a federal law administered by the SEC. State-level adviser regulation derives from the Uniform Securities Act, enforced by state administrators."
+  },
+  {
+    cat: "LAW",
+    q: "An agent who effects securities transactions and omits a material fact to a client has committed:",
+    options: ["A permissible omission", "Fraud, regardless of intent in many cases", "An act that is only unethical if intentional", "A civil matter outside securities law"],
+    answer: 1,
+    explain: "Omitting or misstating a MATERIAL fact in connection with a securities transaction is fraudulent under the antifraud provisions of the Uniform Securities Act, which apply broadly."
+  }
+];
+
+/* =========================================================================
+   GAME STATE & CONFIG
+   ========================================================================= */
+const TIMER_OPTIONS = [
+  { label: "Off", value: 0 },
+  { label: "20s", value: 20 },
+  { label: "30s", value: 30 },
+  { label: "45s", value: 45 }
+];
+const COUNT_OPTIONS = [5, 10, 15, 20, "All"];
+
+const state = {
+  selectedCats: new Set(Object.keys(CATEGORIES)),
+  count: 10,
+  timerSecs: 30,
+  pool: [],
+  idx: 0,
+  score: 0,
+  streak: 0,
+  bestStreak: 0,
+  correct: 0,
+  lives: 3,
+  answered: false,
+  missed: [],
+  byCat: {},
+  timerId: null,
+  timeLeft: 0
+};
+
+const $ = id => document.getElementById(id);
+
+/* ---------- Build start screen chips ---------- */
+function buildChips() {
+  const catWrap = $("catChips");
+  catWrap.innerHTML = "";
+  Object.entries(CATEGORIES).forEach(([key, label]) => {
+    const c = document.createElement("div");
+    c.className = "chip active";
+    c.textContent = label;
+    c.onclick = () => {
+      if (state.selectedCats.has(key)) {
+        if (state.selectedCats.size === 1) return; // keep at least one
+        state.selectedCats.delete(key);
+        c.classList.remove("active");
+      } else {
+        state.selectedCats.add(key);
+        c.classList.add("active");
+      }
+    };
+    catWrap.appendChild(c);
+  });
+
+  const countWrap = $("countChips");
+  countWrap.innerHTML = "";
+  COUNT_OPTIONS.forEach(n => {
+    const c = document.createElement("div");
+    c.className = "chip" + (n === state.count ? " active" : "");
+    c.textContent = n;
+    c.onclick = () => {
+      state.count = n;
+      [...countWrap.children].forEach(ch => ch.classList.remove("active"));
+      c.classList.add("active");
+    };
+    countWrap.appendChild(c);
+  });
+
+  const timerWrap = $("timerChips");
+  timerWrap.innerHTML = "";
+  TIMER_OPTIONS.forEach(opt => {
+    const c = document.createElement("div");
+    c.className = "chip" + (opt.value === state.timerSecs ? " active" : "");
+    c.textContent = opt.label;
+    c.onclick = () => {
+      state.timerSecs = opt.value;
+      [...timerWrap.children].forEach(ch => ch.classList.remove("active"));
+      c.classList.add("active");
+    };
+    timerWrap.appendChild(c);
+  });
+}
+
+/* ---------- Best score badge ---------- */
+function showBest() {
+  const best = localStorage.getItem("s65_best_pct");
+  const bestStk = localStorage.getItem("s65_best_streak");
+  let txt = "";
+  if (best) txt += `🏆 Best score: ${best}%`;
+  if (bestStk) txt += (txt ? "  ·  " : "") + `🔥 Best streak: ${bestStk}`;
+  $("bestBadge").textContent = txt;
+}
+
+/* ---------- Utility: shuffle ---------- */
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* ---------- Start the quiz ---------- */
+function startQuiz() {
+  const filtered = QUESTIONS.filter(q => state.selectedCats.has(q.cat));
+  let pool = shuffle(filtered);
+  const n = state.count === "All" ? pool.length : Math.min(state.count, pool.length);
+  pool = pool.slice(0, n);
+
+  // shuffle options within each question, tracking correct index
+  state.pool = pool.map(q => {
+    const optsWithFlag = q.options.map((text, i) => ({ text, correct: i === q.answer }));
+    const shuffledOpts = shuffle(optsWithFlag);
+    return {
+      cat: q.cat,
+      q: q.q,
+      explain: q.explain,
+      options: shuffledOpts.map(o => o.text),
+      answer: shuffledOpts.findIndex(o => o.correct)
+    };
+  });
+
+  state.idx = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.correct = 0;
+  state.lives = 3;
+  state.missed = [];
+  state.byCat = {};
+
+  $("start").classList.add("hidden");
+  $("results").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  $("qTotal").textContent = state.pool.length;
+  renderQuestion();
+}
+
+/* ---------- Render current question ---------- */
+function renderQuestion() {
+  clearTimer();
+  state.answered = false;
+  const q = state.pool[state.idx];
+
+  $("qNum").textContent = state.idx + 1;
+  $("score").textContent = state.score;
+  $("streak").textContent = state.streak;
+  $("lives").textContent = "❤️".repeat(state.lives) + "🖤".repeat(3 - state.lives);
+  $("progressBar").style.width = ((state.idx) / state.pool.length * 100) + "%";
+
+  $("catTag").textContent = CATEGORIES[q.cat];
+  $("questionText").textContent = q.q;
+
+  const optsWrap = $("options");
+  optsWrap.innerHTML = "";
+  const letters = ["A", "B", "C", "D", "E", "F"];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(i, btn);
+    optsWrap.appendChild(btn);
+  });
+
+  $("feedback").classList.remove("show");
+  $("nextBtn").classList.add("hidden");
+
+  // timer
+  if (state.timerSecs > 0) {
+    $("timerWrap").style.display = "block";
+    startTimer();
+  } else {
+    $("timerWrap").style.display = "none";
+  }
+}
+
+/* ---------- Timer ---------- */
+function startTimer() {
+  state.timeLeft = state.timerSecs;
+  const bar = $("timerBar");
+  bar.style.transition = "none";
+  bar.style.width = "100%";
+  bar.style.background = "var(--good)";
+  // force reflow then enable transition
+  void bar.offsetWidth;
+  bar.style.transition = "width 1s linear, background .3s";
+
+  const tick = () => {
+    state.timeLeft--;
+    const pct = (state.timeLeft / state.timerSecs) * 100;
+    bar.style.width = Math.max(0, pct) + "%";
+    if (pct <= 33) bar.style.background = "var(--bad)";
+    else if (pct <= 60) bar.style.background = "var(--warn)";
+    if (state.timeLeft <= 0) {
+      clearTimer();
+      timeOut();
+    }
+  };
+  state.timerId = setInterval(tick, 1000);
+  // kick the bar down immediately
+  requestAnimationFrame(() => { bar.style.width = "0%"; });
+}
+function clearTimer() {
+  if (state.timerId) { clearInterval(state.timerId); state.timerId = null; }
+}
+
+/* ---------- Time runs out = counts as wrong ---------- */
+function timeOut() {
+  if (state.answered) return;
+  const q = state.pool[state.idx];
+  const buttons = [...$("options").children];
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add("correct");
+  });
+  handleResult(false, -1, true);
+}
+
+/* ---------- Select an answer ---------- */
+function selectAnswer(choice, btn) {
+  if (state.answered) return;
+  clearTimer();
+  const q = state.pool[state.idx];
+  const buttons = [...$("options").children];
+  buttons.forEach(b => b.disabled = true);
+
+  const isCorrect = choice === q.answer;
+  buttons[q.answer].classList.add("correct");
+  if (!isCorrect) btn.classList.add("wrong");
+
+  handleResult(isCorrect, choice, false);
+}
+
+/* ---------- Process the result, show feedback ---------- */
+function handleResult(isCorrect, choice, timedOut) {
+  state.answered = true;
+  const q = state.pool[state.idx];
+
+  // track category stats
+  if (!state.byCat[q.cat]) state.byCat[q.cat] = { correct: 0, total: 0 };
+  state.byCat[q.cat].total++;
+
+  if (isCorrect) {
+    state.correct++;
+    state.streak++;
+    state.bestStreak = Math.max(state.bestStreak, state.streak);
+    state.byCat[q.cat].correct++;
+    // scoring: base 100 + streak bonus + time bonus
+    let pts = 100 + (state.streak - 1) * 20;
+    if (state.timerSecs > 0) pts += Math.round((state.timeLeft / state.timerSecs) * 50);
+    state.score += pts;
+  } else {
+    state.streak = 0;
+    state.lives--;
+    state.missed.push({
+      q: q.q,
+      yours: timedOut ? "(ran out of time)" : q.options[choice],
+      right: q.options[q.answer],
+      explain: q.explain,
+      cat: q.cat
+    });
+  }
+
+  $("score").textContent = state.score;
+  $("streak").textContent = state.streak;
+  $("lives").textContent = "❤️".repeat(Math.max(0, state.lives)) + "🖤".repeat(3 - Math.max(0, state.lives));
+
+  // feedback
+  const fb = $("feedback");
+  const verdict = $("verdict");
+  if (timedOut) {
+    verdict.textContent = "⏰ Time's up!";
+    verdict.className = "verdict wrong";
+  } else if (isCorrect) {
+    const cheers = ["✅ Correct!", "✅ Nailed it!", "✅ Right on!", "✅ Exactly!"];
+    verdict.textContent = cheers[Math.floor(Math.random() * cheers.length)] + (state.streak >= 3 ? `  🔥 ${state.streak} streak!` : "");
+    verdict.className = "verdict right";
+  } else {
+    verdict.textContent = "❌ Not quite.";
+    verdict.className = "verdict wrong";
+  }
+  $("explain").textContent = q.explain;
+  fb.classList.add("show");
+
+  $("progressBar").style.width = ((state.idx + 1) / state.pool.length * 100) + "%";
+
+  // out of lives?
+  if (state.lives <= 0) {
+    $("nextBtn").textContent = "See Results →";
+    $("nextBtn").classList.remove("hidden");
+    state.outOfLives = true;
+    return;
+  }
+
+  // last question?
+  const isLast = state.idx === state.pool.length - 1;
+  $("nextBtn").textContent = isLast ? "See Results →" : "Next →";
+  $("nextBtn").classList.remove("hidden");
+}
+
+/* ---------- Next button ---------- */
+function next() {
+  if (state.outOfLives || state.idx === state.pool.length - 1) {
+    showResults();
+    return;
+  }
+  state.idx++;
+  renderQuestion();
+}
+
+/* ---------- Results screen ---------- */
+function showResults() {
+  clearTimer();
+  $("quiz").classList.add("hidden");
+  $("results").classList.remove("hidden");
+
+  const answered = state.byCat ? Object.values(state.byCat).reduce((s, c) => s + c.total, 0) : 0;
+  const totalAttempted = state.missed.length + state.correct;
+  const pct = totalAttempted > 0 ? Math.round((state.correct / totalAttempted) * 100) : 0;
+
+  $("finalScore").textContent = pct + "%";
+  $("finalSub").textContent = `${state.correct} of ${totalAttempted} correct · ${state.score} points`;
+
+  // grade / message
+  let grade;
+  if (state.outOfLives) grade = "💔 Out of lives — but every miss is a lesson. Try again!";
+  else if (pct >= 90) grade = "🌟 Outstanding! You're exam-ready.";
+  else if (pct >= 72) grade = "✅ Passing range! Keep sharpening.";
+  else if (pct >= 50) grade = "📈 Getting there — review and repeat.";
+  else grade = "📚 Keep studying — you've got this.";
+  $("gradeText").textContent = grade;
+
+  // breakdown by category
+  const bd = $("breakdown");
+  bd.innerHTML = "<div class='brow'><b>Topic</b><b>Score</b></div>";
+  Object.entries(state.byCat).forEach(([cat, s]) => {
+    const row = document.createElement("div");
+    row.className = "brow";
+    const p = Math.round((s.correct / s.total) * 100);
+    row.innerHTML = `<span>${CATEGORIES[cat]}</span><span>${s.correct}/${s.total} (${p}%)</span>`;
+    bd.appendChild(row);
+  });
+
+  // review missed
+  const reviewSection = $("reviewSection");
+  const list = $("reviewList");
+  list.innerHTML = "";
+  if (state.missed.length === 0) {
+    reviewSection.querySelector("h2").textContent = "Perfect run — nothing to review! 🎉";
+  } else {
+    reviewSection.querySelector("h2").textContent = "Review missed questions";
+    state.missed.forEach(m => {
+      const item = document.createElement("div");
+      item.className = "review-item";
+      item.innerHTML = `
+        <div class="rq">${m.q}</div>
+        <div class="ra"><span class="yours">Your answer: ${m.yours}</span><br/>
+        <span class="right">Correct: ${m.right}</span><br/><br/>
+        ${m.explain}</div>`;
+      list.appendChild(item);
+    });
+  }
+
+  // save best
+  const prevBest = parseInt(localStorage.getItem("s65_best_pct") || "0", 10);
+  if (pct > prevBest) localStorage.setItem("s65_best_pct", pct);
+  const prevStreak = parseInt(localStorage.getItem("s65_best_streak") || "0", 10);
+  if (state.bestStreak > prevStreak) localStorage.setItem("s65_best_streak", state.bestStreak);
+
+  state.outOfLives = false;
+}
+
+/* ---------- Wire up ---------- */
+$("startBtn").onclick = startQuiz;
+$("nextBtn").onclick = next;
+$("againBtn").onclick = startQuiz;
+$("homeBtn").onclick = () => {
+  $("results").classList.add("hidden");
+  $("quiz").classList.add("hidden");
+  $("start").classList.remove("hidden");
+  showBest();
+};
+
+// keyboard: 1-4 to answer, Enter for next
+document.addEventListener("keydown", e => {
+  if (!$("quiz").classList.contains("hidden")) {
+    if (!state.answered && ["1", "2", "3", "4"].includes(e.key)) {
+      const i = parseInt(e.key, 10) - 1;
+      const btn = $("options").children[i];
+      if (btn) selectAnswer(i, btn);
+    } else if (state.answered && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
+      next();
+    }
+  }
+});
+
+buildChips();
+showBest();
+</script>
+</body>
+</html>
